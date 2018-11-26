@@ -1,0 +1,11 @@
+@import 'scss/colors';
+
+.about {
+	.card-container {
+		max-width: 200px;
+
+		img {
+			max-width: 100%;
+		}
+	}
+}
