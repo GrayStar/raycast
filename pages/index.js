@@ -3,15 +3,16 @@ import { Link, Router } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 
+import Page from 'app/components/page';
 import Main from 'app/layouts/main';
 import styles from 'app/scss/pages/index.scss';
 
-export default class Index extends Component {
+export default class Index extends Page {
     constructor(props) {
         super(props);
     }
 
-    static async getInitialProps(context) {
+    static async _getInitialProps(context) {
         const response = await axios.get('https://api.pokemontcg.io/v1/cards');
         return { cards: response.data.cards };
     }
@@ -44,7 +45,7 @@ export default class Index extends Component {
         });
     }
 
-    render() {
+    get _successState() {
         return (
             <Main title='Index Page'>
                 <article className={ styles.index }>

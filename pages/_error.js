@@ -25,12 +25,14 @@ export default class Error extends Component {
 
                                 <p>{
                                     this.props.statusCode
-                                    ? `An error:${this.props.statusCode} occurred on server`
+                                    ? `An error:${ this.props.statusCode } occurred on server`
                                     : 'An error occurred on client'
                                 }</p>
 
                                 <p>
-                                    <Link to='/'><a>Home</a></Link>
+                                    <Link to='/'>
+                                        <a>Home</a>
+                                    </Link>
                                 </p>
 
                             </Col>
