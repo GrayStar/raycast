@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import Error from 'app/pages/_error';
 
@@ -19,14 +19,18 @@ export default class Page extends Component {
 
     // Generic getInitialProps defined by Next.js,
     // allows for error handling on routes that are defined, but contain bad urls.
+    // Routes that are undefined are automatically handled by Next.js.
     static async getInitialProps(context) {
         try {
             const initialProps = await this._getInitialProps(context);
             return initialProps;
         } catch(error) {
+            const statusCode = error.response.data.status || 404;
+            const statusText = error.response.data.error || 'Not Found';
+
             return {
-                statusCode: error.response.data.status,
-                statusText: error.response.data.error,
+                statusCode,
+                statusText,
             };
         };
     }
@@ -70,10 +74,12 @@ export default class Page extends Component {
             case this.STATES.ERROR:
                 return this._errorState;
                 break;
+            default:
+                return this._loadingState;
         }
     }
 
     render() {
-        return (this._currentState);
+        return this._currentState;
     }
 }

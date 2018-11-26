@@ -1,4 +1,3 @@
-import React, { Component } from 'react';
 import { Link, Router } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
@@ -30,8 +29,6 @@ export default class Index extends Page {
     }
 
     get _list() {
-        if (!this.props.cards) return null;
-
         return this.props.cards.map(currentCard => {
             return (
                 <li key={currentCard.id}>

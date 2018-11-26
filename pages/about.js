@@ -1,4 +1,3 @@
-import React, { Component } from 'react';
 import { Link } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
