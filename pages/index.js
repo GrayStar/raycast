@@ -24,6 +24,10 @@ export default class Index extends Component {
         Router.pushRoute('/nothing');
     }
 
+    _handleBrokenLinkClick() {
+        Router.pushRoute('/card/nothing');
+    }
+
     get _list() {
         if (!this.props.cards) return null;
 
@@ -51,7 +55,8 @@ export default class Index extends Component {
                                 <h2>Index Page</h2>
 
                                 <button onClick={ this._handleButtonClick.bind(this) }>Imperative Link (Working)</button>
-                                <button onClick={ this._handleBrokenButtonClick.bind(this) }>Imperative Link (Broken)</button>
+                                <button onClick={ this._handleBrokenButtonClick.bind(this) }>Imperative Link (Missing Route)</button>
+                                <button onClick={ this._handleBrokenLinkClick.bind(this) }>Imperative Link (Broken Endpoint)</button>
 
                                 <ul>
                                     { this._list }

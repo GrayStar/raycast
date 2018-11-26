@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
 
 import Main from 'app/layouts/main';
@@ -27,6 +28,10 @@ export default class Error extends Component {
                                     ? `An error:${this.props.statusCode} occurred on server`
                                     : 'An error occurred on client'
                                 }</p>
+
+                                <p>
+                                    <Link to='/'><a>Home</a></Link>
+                                </p>
 
                             </Col>
                         </Row>
