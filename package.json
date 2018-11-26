@@ -1,10 +1,10 @@
 {
-	"name": "",
-	"description": "",
+	"name": "nextjs-boilerplate",
+	"description": "Basic setup for a Next.js project",
 	"license": "",
-	"repository": "",
-	"private": true,
-	"author": "",
+	"repository": "https://github.com/GrayStar/nextjs-boilerplate",
+	"private": false,
+	"author": "https://github.com/GrayStar",
 	"devDependencies": {
 		"babel-plugin-module-resolver": "3.1.1"
 	},
