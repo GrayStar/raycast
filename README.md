@@ -17,6 +17,26 @@
     - `start`: Starts the server.
 
 
+### Adding a new Page
+1. Add a new file in the `pages` directory.
+
+2. Import the `Page` class and have the new class extend it.
+```import Page from 'app/components/page';```
+```export default class NewPage extends Page {}```
+
+3. Overwrite `get _successState() {}`
+```
+get _successState() {
+    return (
+    	<h1>New Page</h1>
+    );
+}
+```
+
+4. Add a route for your new page in `routes.js`.
+```routes.add(${path}, ${name of file in pages directory});```
+
+
 ### Using Hashed Statics
 
 1. The static file path can be different depending on whether the page is being rendered on the server or the client. The `page.js` component is responsible for determining this file path in it's constructor. Components that extend `page.js` will have access to this variable as `this.staticFilePath`.
