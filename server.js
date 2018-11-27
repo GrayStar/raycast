@@ -8,18 +8,18 @@ const handle = app.getRequestHandler();
 const handler = routes.getRequestHandler(app);
 
 app.prepare().then(() => {
-	const server = express();
-	server.use(handler);
+    const server = express();
+    server.use(handler);
 
-	server.get('*', (req, res) => {
-		return handle(req, res);
-	});
+    server.get('*', (req, res) => {
+        return handle(req, res);
+    });
 
-	server.listen(3000, (error) => {
-		if (error) throw error;
-		console.log('App ready on http://localhost:3000');
-	});
+    server.listen(3000, (error) => {
+        if (error) throw error;
+        console.log('App ready on http://localhost:3000');
+    });
 }).catch((error) => {
-	console.error(error.stack);
-	process.exit(1);
+    console.error(error.stack);
+    process.exit(1);
 });
