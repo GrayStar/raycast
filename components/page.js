@@ -1,3 +1,4 @@
+import getConfig from 'next/config';
 import { Component } from 'react';
 
 import Error from 'app/pages/_error';
@@ -15,6 +16,12 @@ export default class Page extends Component {
         this.state = {
             currentState: this.STATES.LOADING,
         };
+
+        // Determine file path for hashed static assets
+        const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
+        this.staticFilePath = serverRuntimeConfig.staticFilePath ?
+            serverRuntimeConfig.staticFilePath :
+            publicRuntimeConfig.staticFilePath;
     }
 
     // Generic getInitialProps defined by Next.js,

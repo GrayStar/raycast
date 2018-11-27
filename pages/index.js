@@ -50,11 +50,18 @@ export default class Index extends Page {
                 <article className={ styles.index }>
                     <Grid>
                         <Row>
-                            <Col xs={12}>
-
-                                <img src={ staticImage } alt='Static Hashed Image'/>
+                            <Col xs={6}>
+                                <h2>Static Hashed Image</h2>
+                                <img src={ `${this.staticFilePath}${staticImage}` } alt='Static Hashed Image'/>
+                            </Col>
+                            <Col xs={6}>
+                                <h2>Static Image</h2>
                                 <img src='/static/images/test.png' alt='Static Image'/>
+                            </Col>
+                        </Row>
 
+                        <Row>
+                            <Col xs={12}>
                                 <h2>Index Page</h2>
 
                                 <button onClick={ this._handleButtonClick.bind(this) }>Imperative Link (Working)</button>
@@ -64,7 +71,6 @@ export default class Index extends Page {
                                 <ul>
                                     { this._list }
                                 </ul>
-
                             </Col>
                         </Row>
                     </Grid>
