@@ -37,6 +37,21 @@ get _successState() {
 ```routes.add(${path}, ${name of file in pages directory});```
 
 
+### Using the layout
+1. Import the `Main` class.
+```import Main from 'app/layouts/main';```
+
+2. Wrap the returned JSX within `_successState` in `<Main>` and pass it a `title` prop.
+```
+ get _successState() {
+    return (
+        <Main title='New Page'>
+        	<h1>New Page</h1>
+        </Main>
+    );
+}
+```
+
 ### Using Hashed Statics
 
 1. The static file path can be different depending on whether the page is being rendered on the server or the client. The `page.js` component is responsible for determining this file path in it's constructor. Components that extend `page.js` will have access to this variable as `this.staticFilePath`.
