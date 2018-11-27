@@ -16,6 +16,7 @@
     - `build`: Compiles the code.
     - `start`: Starts the server.
 
+---
 
 ### Adding a new Page
 1. Add a new file in the `pages` directory.
@@ -42,6 +43,7 @@ get _successState() {
 routes.add(${path}, ${name of file in pages directory});
 ```
 
+---
 
 ### Using the layout
 1. Import the `Main` class.
@@ -59,6 +61,23 @@ import Main from 'app/layouts/main';
     );
 }
 ```
+
+---
+
+### Adding Styles
+1. All the base(global) styles are written in `_base.scss` and imported to `main.scss`.  `main.scss` is then imported to the layout component and rendered into the head of the doc using a style tag. This means that if a page is not wrapped within the `<Main>` layout component, it won't inherit the base styles!
+
+2. Unique page level styles are kept in the `scss/pages/` directory, and their file names reflect the names of the pages they are responsible for styling.
+
+3. Unique component level styles are kept in the `scss/components/` directory, and their file names reflect the names of the components they are responsible for styling.
+
+4. Styles can be imported with `import styles from 'app/scss/${pages||components}/${fileName}.scss';`
+
+5. Imported styles can be used within the JSX templates with `<div className={ styles.name }/>`. If a class name contains a hyphen, use array notation to access the class: `<div className={ styles['class-name-here'] }/>`.
+
+6. cssModules are used and class names contain unique hashes. Configuration for this can be seen in `next.config.js`.
+
+---
 
 ### Using Hashed Statics
 
