@@ -25,4 +25,4 @@
 `import hashedImage from 'app/static/images/test.png';`
 
 3. Combine the static file path and the hashed image import within the JSX to get the image to render.
-`<img src={ `${this.staticFilePath}${hashedImage}` } alt='Static Hashed Image'/>`
+`<img src={ ``${this.staticFilePath}${hashedImage}`` } alt='Static Hashed Image'/>`
