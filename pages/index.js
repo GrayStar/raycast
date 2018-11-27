@@ -1,3 +1,5 @@
+import staticImage from 'app/static/images/test.png';
+
 import { Link, Router } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
@@ -49,6 +51,9 @@ export default class Index extends Page {
                     <Grid>
                         <Row>
                             <Col xs={12}>
+
+                                <img src={ staticImage } alt='Static Hashed Image'/>
+                                <img src='/static/images/test.png' alt='Static Image'/>
 
                                 <h2>Index Page</h2>
 
