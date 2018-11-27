@@ -1,4 +1,4 @@
-import staticImage from 'app/static/images/test.png';
+import hashedImage from 'app/static/images/test.png';
 
 import { Link, Router } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
@@ -52,7 +52,7 @@ export default class Index extends Page {
                         <Row>
                             <Col xs={6}>
                                 <h2>Static Hashed Image</h2>
-                                <img src={ `${this.staticFilePath}${staticImage}` } alt='Static Hashed Image'/>
+                                <img src={ `${this.staticFilePath}${hashedImage}` } alt='Static Hashed Image'/>
                             </Col>
                             <Col xs={6}>
                                 <h2>Static Image</h2>
