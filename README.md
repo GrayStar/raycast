@@ -1,7 +1,6 @@
 ## Next.js Boilerplate
 
 ### Initial Setup
-
 1. Make sure you have [Node](https://nodejs.org/en/) installed.
 9.10.1 at the time of setup
 
@@ -64,7 +63,25 @@ import Main from 'app/layouts/main';
 
 ---
 
-### Adding Styles
+### Using the Grid System
+1. [React Bootstrap](https://react-bootstrap.github.io/) is used for for the grid system.
+
+2. Import the Grid, Row, and Col components.
+```
+import { Grid, Row, Col } from 'react-bootstrap';
+```
+3. Use the components to construct the layout.
+```
+<Grid>
+    <Row>
+        <Col sm={12}/>
+    </Row>
+</Grid>
+```
+
+---
+
+### Adding Additional Styles
 1. All the base(global) styles are written in `_base.scss` and imported to `main.scss`.  `main.scss` is then imported to the layout component and rendered into the head of the doc using a style tag. This means that if a page is not wrapped within the `<Main>` layout component, it won't inherit the base styles!
 
 2. Unique page level styles are kept in the `scss/pages/` directory, and their file names reflect the names of the pages they are responsible for styling.
@@ -75,12 +92,11 @@ import Main from 'app/layouts/main';
 
 5. Imported styles can be used within the JSX templates with `<div className={ styles.name }/>`. If a class name contains a hyphen, use array notation to access the class: `<div className={ styles['class-name-here'] }/>`.
 
-6. cssModules are used and class names contain unique hashes. Configuration for this can be seen in `next.config.js`.
+6. cssModules are utilized to keep class names and animations scoped locally to each page or component. Configuration for this can be seen in `next.config.js`. More information can be found on the [cssModules github](https://github.com/css-modules/css-modules).
 
 ---
 
 ### Using Hashed Statics
-
 1. The static file path can be different depending on whether the page is being rendered on the server or the client. The `page.js` component is responsible for determining this file path in it's constructor. Components that extend `page.js` will have access to this variable as `this.staticFilePath`.
 
 2. Static assets must be imported in order for webpack to add the hash.
