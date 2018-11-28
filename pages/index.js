@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import { incrementCount } from 'app/store/store';
+import { incrementCount } from 'app/store/actions';
 
 import hashedImage from 'app/static/images/test.png';
 
