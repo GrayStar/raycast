@@ -50,11 +50,11 @@ export default class Index extends Page {
                 <article className={ styles.index }>
                     <Grid>
                         <Row>
-                            <Col xs={6}>
+                            <Col xs={12} md={6}>
                                 <h2>Static Hashed Image</h2>
                                 <img src={ `${this.staticFilePath}${hashedImage}` } alt='Static Hashed Image'/>
                             </Col>
-                            <Col xs={6}>
+                            <Col xs={12} md={6}>
                                 <h2>Static Image</h2>
                                 <img src='/static/images/test.png' alt='Static Image'/>
                             </Col>
