@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import { Grid, Row, Col } from 'react-bootstrap';
 
-import styles from 'scss/components/header.scss';
+import styles from 'app/scss/components/header.scss';
 
 export default class Header extends Component {
     constructor (props) {

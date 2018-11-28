@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import { Grid, Row, Col } from 'react-bootstrap';
 
-import styles from 'scss/components/footer.scss';
+import styles from 'app/scss/components/footer.scss';
 
 export default class Footer extends Component {
     constructor (props) {
