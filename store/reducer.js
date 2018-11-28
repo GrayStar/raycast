@@ -5,7 +5,7 @@ export default (state = initialState, action) => {
     switch (action.type) {
         case actionTypes.INCREMENT:
             return Object.assign({}, state, {
-                count: state.count + 1
+                count: state.count + 1,
             });
             break;
         default:
