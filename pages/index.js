@@ -1,3 +1,6 @@
+import { connect } from 'react-redux';
+import { incrementCount } from 'app/store/actions';
+
 import hashedImage from 'app/static/images/test.png';
 
 import { Link, Router } from 'app/routes';
@@ -8,7 +11,7 @@ import Page from 'app/components/page';
 import Main from 'app/layouts/main';
 import styles from 'app/scss/pages/index.scss';
 
-export default class Index extends Page {
+class Index extends Page {
     constructor(props) {
         super(props);
     }
@@ -16,6 +19,11 @@ export default class Index extends Page {
     static async _getInitialProps(context) {
         const response = await axios.get('https://api.pokemontcg.io/v1/cards');
         return { cards: response.data.cards };
+    }
+
+    _handleIncrementButtonClick() {
+        const { dispatch } = this.props;
+        dispatch(incrementCount());
     }
 
     _handleButtonClick() {
@@ -50,6 +58,13 @@ export default class Index extends Page {
                 <article className={ styles.index }>
                     <Grid>
                         <Row>
+                            <Col sm={12}>
+                                { this.props.count }
+                                <button onClick={ this._handleIncrementButtonClick.bind(this) }>Increment</button>
+                            </Col>
+                        </Row>
+
+                        <Row>
                             <Col xs={12} md={6}>
                                 <h2>Static Hashed Image</h2>
                                 <img src={ `${this.staticFilePath}${hashedImage}` } alt='Static Hashed Image'/>
@@ -79,3 +94,9 @@ export default class Index extends Page {
         );
     }
 }
+
+function mapStateToProps(state) {
+    return state;
+}
+
+export default connect(mapStateToProps)(Index);
