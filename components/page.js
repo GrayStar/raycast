@@ -1,5 +1,9 @@
-import getConfig from 'next/config';
 import { Component } from 'react';
+
+import getConfig from 'next/config';
+import { Router } from 'next/router';
+
+import Main from 'app/layouts/main';
 
 import Error from 'app/pages/_error';
 
@@ -22,6 +26,10 @@ export default class Page extends Component {
         this.staticFilePath = serverRuntimeConfig.staticFilePath ?
             serverRuntimeConfig.staticFilePath :
             publicRuntimeConfig.staticFilePath;
+
+        // Bind route change events to help display currentState
+        this._handleRouteChangeStart = this._handleRouteChangeStart.bind(this);
+        Router.events.on('routeChangeStart', this._handleRouteChangeStart);
     }
 
     // Generic getInitialProps defined by Next.js,
@@ -42,6 +50,12 @@ export default class Page extends Component {
         };
     }
 
+    // Custom getInitialProps defined by us,
+    // to be overwritten in classes that extend this one.
+    static async _getInitialProps(context) {
+        return {};
+    }
+
     // Check if Next.js's getInitialProps caught an error,
     // If so set the page's currentState to ERROR.
     componentWillMount() {
@@ -52,14 +66,22 @@ export default class Page extends Component {
         }
     }
 
-    // Custom getInitialProps defined by us,
-    // to be overwritten in classes that extend this one.
-    static async _getInitialProps(context) {
-        return {};
+    // Remove route change events when component unmounts.
+    componentWillUnmount() {
+        Router.events.off('routeChangeStart', this._handleRouteChangeStart);
+    }
+
+    // Force page to show loading state on route change start.
+    _handleRouteChangeStart(url) {
+        this.setState({ currentState: this.STATES.LOADING });
     }
 
     get _loadingState() {
-        return <div>Loading...</div>;
+        return (
+            <Main title='Loading...'>
+                <p>Loading...</p>
+            </Main>
+        );
     }
 
     get _successState() {
