@@ -22,14 +22,17 @@ export default class Page extends Component {
         };
 
         // Determine file path for hashed static assets
-        const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
-        this.staticFilePath = serverRuntimeConfig.staticFilePath ?
-            serverRuntimeConfig.staticFilePath :
-            publicRuntimeConfig.staticFilePath;
+        this.serverRuntimeConfig = getConfig().serverRuntimeConfig;
+        this.publicRuntimeConfig = getConfig().publicRuntimeConfig;
 
-        // Bind route change events to help display currentState
+        this.staticFilePath = this.serverRuntimeConfig.staticFilePath ?
+            this.serverRuntimeConfig.staticFilePath :
+            this.publicRuntimeConfig.staticFilePath;
+
         this._handleRouteChangeStart = this._handleRouteChangeStart.bind(this);
+        this._handleRouteChangeError = this._handleRouteChangeError.bind(this);
         Router.events.on('routeChangeStart', this._handleRouteChangeStart);
+        Router.events.on('routeChangeError', this._handleRouteChangeError);
     }
 
     // Generic getInitialProps defined by Next.js,
@@ -69,11 +72,17 @@ export default class Page extends Component {
     // Remove route change events when component unmounts.
     componentWillUnmount() {
         Router.events.off('routeChangeStart', this._handleRouteChangeStart);
+        Router.events.off('routeChangeError', this._handleRouteChangeError);
     }
 
     // Force page to show loading state on route change start.
     _handleRouteChangeStart(url) {
         this.setState({ currentState: this.STATES.LOADING });
+    }
+
+    _handleRouteChangeError(error, url) {
+        console.log('Route Change Error: ', error);
+        this.setState({ currentState: this.STATES.ERROR });
     }
 
     get _loadingState() {
