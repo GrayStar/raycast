@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'app/routes';
-import { Grid, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 
 import Main from 'app/layouts/main';
 import styles from 'app/scss/pages/error.scss';
@@ -19,7 +19,7 @@ export default class Error extends Component {
         return (
             <Main title='Error Page'>
                 <article className={ styles.error }>
-                    <Grid>
+                    <Container>
                         <Row>
                             <Col xs={12}>
 
@@ -37,7 +37,7 @@ export default class Error extends Component {
 
                             </Col>
                         </Row>
-                    </Grid>
+                    </Container>
                 </article>
             </Main>
         );

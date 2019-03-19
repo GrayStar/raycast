@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { Grid, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 
 import styles from 'app/scss/components/footer.scss';
 
@@ -11,13 +11,13 @@ export default class Footer extends Component {
     render() {
         return (
             <footer>
-                <Grid>
+                <Container>
                     <Row>
                         <Col xs={12}>
                             <h1>footer</h1>
                         </Col>
                     </Row>
-                </Grid>
+                </Container>
             </footer>
         );
     }

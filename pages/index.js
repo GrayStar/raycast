@@ -4,7 +4,7 @@ import { incrementCount } from 'app/store/actions';
 import hashedImage from 'app/static/images/test.png';
 
 import { Link, Router } from 'app/routes';
-import { Grid, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 
 import Page from 'app/components/page';
 import Main from 'app/layouts/main';
@@ -57,7 +57,7 @@ class Index extends Page {
         return (
             <Main title='Index Page'>
                 <article className={ styles.index }>
-                    <Grid>
+                    <Container>
                         <Row>
                             <Col sm={12}>
                                 { this.props.count }
@@ -89,7 +89,7 @@ class Index extends Page {
                                 </ul>
                             </Col>
                         </Row>
-                    </Grid>
+                    </Container>
                 </article>
             </Main>
         );

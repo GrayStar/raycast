@@ -1,5 +1,5 @@
 import { Link } from 'app/routes';
-import { Grid, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 
 import Page from 'app/components/page';
 import Main from 'app/layouts/main';
@@ -21,7 +21,7 @@ export default class About extends Page {
         return (
             <Main title='About Page'>
                 <article className={ styles.about }>
-                    <Grid>
+                    <Container>
                         <Row>
                             <Col xs={12}>
 
@@ -37,7 +37,7 @@ export default class About extends Page {
 
                             </Col>
                         </Row>
-                    </Grid>
+                    </Container>
                 </article>
             </Main>
         );
