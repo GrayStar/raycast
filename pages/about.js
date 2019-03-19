@@ -1,10 +1,11 @@
 import { Link } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
 
 import Page from 'app/components/page';
 import Main from 'app/layouts/main';
 import styles from 'app/scss/pages/about.scss';
+
+import { getPokemonCardDetails } from 'app/api';
 
 export default class About extends Page {
     constructor(props) {
@@ -12,8 +13,8 @@ export default class About extends Page {
     }
 
     static async _getInitialProps(context) {
-        const response = await axios.get(`https://api.pokemontcg.io/v1/cards/${context.query.id}`);
-        return { card: response.data.card };
+        const response = await getPokemonCardDetails(context.query.id);
+        return { card: response.card };
     }
 
     get _successState() {

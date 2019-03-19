@@ -6,6 +6,9 @@ module.exports = withSass({
     },
     publicRuntimeConfig: { // Will be available on both server and client
         staticFilePath: '',
+        rootUrl: process.env.API_ROOT_URL
+            ? process.env.API_ROOT_URL
+            : 'http://localhost:8080',
     },
     cssModules: true,
     sassLoaderOptions: {
@@ -13,7 +16,7 @@ module.exports = withSass({
     },
     cssLoaderOptions: {
         importLoaders: 1,
-        localIdentName: '[local]___[hash:base64:5]',
+        localIdentName: '[local]', // ___[hash:base64:5]
     },
     webpack: config => {
         config.module.rules.push({

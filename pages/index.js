@@ -5,11 +5,12 @@ import hashedImage from 'app/static/images/test.png';
 
 import { Link, Router } from 'app/routes';
 import { Grid, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
 
 import Page from 'app/components/page';
 import Main from 'app/layouts/main';
 import styles from 'app/scss/pages/index.scss';
+
+import { getPokemonCards } from 'app/api';
 
 class Index extends Page {
     constructor(props) {
@@ -17,8 +18,8 @@ class Index extends Page {
     }
 
     static async _getInitialProps(context) {
-        const response = await axios.get('https://api.pokemontcg.io/v1/cards');
-        return { cards: response.data.cards };
+        const response = await getPokemonCards();
+        return { cards: response.cards };
     }
 
     _handleIncrementButtonClick() {
