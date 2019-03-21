@@ -143,85 +143,88 @@ export default class Raycast {
     }
 
     _raycast() {
+        // Loop through each column (x) of pixels across the canvas
         for(let x = 0; x < this._width; x++) {
-            const cameraX = 2 * x / this._width - 1; // x-coordinate in camera space
 
+            // X-coordinate in camera space
+            const cameraX = 2 * x / this._width - 1;
+
+            // X and y direction of the ray
             const rayDirectionX = this._player.direction.x + this._camera.direction.x * cameraX;
             const rayDirectionY = this._player.direction.y + this._camera.direction.y * cameraX;
 
-            // current tile of the map the player is in
+            // Current tile of the map the player is in
             let mapX = Math.floor(this._player.position.x);
             let mapY = Math.floor(this._player.position.y);
 
-             // length of ray from current position to next x or y-side
-            let sideDistX;
-            let sideDistY;
+            // Length of ray from current position to next x or y-side
+            let sideDistanceX;
+            let sideDistanceY;
 
-            // length of ray from one x or y-side to next x or y-side
-            const deltaDistX = Math.abs(1 / rayDirectionX);
-            const deltaDistY = Math.abs(1 / rayDirectionY);
-            let perpWallDist;
+            // Length of ray from one x or y-side to next x or y-side
+            const deltaDistanceX = Math.abs(1 / rayDirectionX);
+            const deltaDistanceY = Math.abs(1 / rayDirectionY);
 
-            // what direction to step in x or y-direction (either +1 or -1)
+            // What direction to step in either x or y-direction (either +1 or -1)
             let stepX;
             let stepY;
 
-            let hit = 0; // was there a wall hit?
-            let side;    // was a NS or a EW wall hit?
-
-            // calculate step and initial sideDist
+            // Calculate step and initial sideDistance
             if (rayDirectionX < 0) {
                 stepX = -1;
-                sideDistX = (this._player.position.x - mapX) * deltaDistX;
+                sideDistanceX = (this._player.position.x - mapX) * deltaDistanceX;
             } else {
                 stepX = 1;
-                sideDistX = (mapX + 1 - this._player.position.x) * deltaDistX;
+                sideDistanceX = (mapX + 1 - this._player.position.x) * deltaDistanceX;
             }
 
             if (rayDirectionY < 0) {
                 stepY = -1;
-                sideDistY = (this._player.position.y - mapY) * deltaDistY;
+                sideDistanceY = (this._player.position.y - mapY) * deltaDistanceY;
             } else {
                 stepY = 1;
-                sideDistY = (mapY + 1 - this._player.position.y) * deltaDistY;
+                sideDistanceY = (mapY + 1 - this._player.position.y) * deltaDistanceY;
             }
 
-            // perform DDA
-            while (hit === 0) {
-                // jump to next map square, OR in x-direction, OR in y-direction
-                if (sideDistX < sideDistY) {
-                    sideDistX += deltaDistX;
+            // Perform DDA
+            let hit = false; // Was a wall hit?
+            let side; // Was a NS or a EW wall hit?
+
+            while (hit === false) {
+                // Jump to next map square, OR in x-direction, OR in y-direction
+                if (sideDistanceX < sideDistanceY) {
+                    sideDistanceX += deltaDistanceX;
                     mapX += stepX;
                     side = 0;
                 } else {
-                    sideDistY += deltaDistY;
+                    sideDistanceY += deltaDistanceY;
                     mapY += stepY;
                     side = 1;
                 }
 
                 // Check if ray has hit a wall
-                if (this._getMapTileByXY(mapX, mapY) > 0) hit = 1;
+                if (this._getMapTileByXY(mapX, mapY) > 0) hit = true;
             }
 
             // Calculate distance projected on camera direction
-            if (side === 0) perpWallDist = (mapX - this._player.position.x + (1 - stepX) / 2) / rayDirectionX;
-            else perpWallDist = (mapY - this._player.position.y + (1 - stepY) / 2) / rayDirectionY;
+            let rayDistance;
+            if (side === 0) rayDistance = (mapX - this._player.position.x + (1 - stepX) / 2) / rayDirectionX;
+            else rayDistance = (mapY - this._player.position.y + (1 - stepY) / 2) / rayDirectionY;
 
 
             // Calculate height of line to draw on screen
-            const lineHeight = parseInt(this._height / perpWallDist);
+            const lineHeight = Math.floor(this._height / rayDistance);
 
-            // calculate lowest and highest pixel to fill in current stripe
+            // Calculate lowest and highest pixel to fill in current stripe
             let drawStart = (-lineHeight / 2 + this._height / 2);
             if (drawStart < 0) drawStart = 0;
 
             let drawEnd = (lineHeight / 2 + this._height / 2);
             if (drawEnd >= this._height) drawEnd = this._height - 1;
 
-            //choose wall color
+            // Choose wall color
             let color
-            switch(this._getMapTileByXY(mapX, mapY))
-            {
+            switch(this._getMapTileByXY(mapX, mapY)) {
                   case 1:
                       color = '#F00';
                       break;
@@ -239,9 +242,10 @@ export default class Raycast {
                       break;
             }
 
-            // //give x and y sides different brightness
-            if (side == 1) color = color.replace('F', '8');
+            // Give x and y sides different brightness
+            if (side === 1) color = color.replace('F', '8');
 
+            // Draw wall sliver
             this._drawFilledRect(x, drawStart, 1, lineHeight, color);
         }
     }
