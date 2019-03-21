@@ -61,7 +61,6 @@ class Index extends Page {
                         <Row>
                             <Col sm={12}>
                                 { this.props.count }
-                                test
                                 <button onClick={ this._handleIncrementButtonClick.bind(this) }>Increment</button>
                             </Col>
                         </Row>
