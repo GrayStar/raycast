@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import Raycast from 'app/components/raycast';
+import Raycast from 'app/level/raycast';
 
 export default class Scene extends Component {
     constructor (props) {

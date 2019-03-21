@@ -4,20 +4,36 @@ import {
     radianToVy,
 } from 'app/utilities/math-utilities';
 
+import Level from 'app/level/level';
+
 const BYTES_PER_PIXEL = 4;
 
-const map = [
-    1, 1, 0, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 0, 1,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    1, 0, 0, 0, 0, 2, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 3, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 1,
-    1, 1, 0, 1, 1, 1, 1, 1,
-];
-const mapWidth = 8;
-const mapHeight = 8;
+const level = new Level();
+
+level.setWalls([
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 2, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 3, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+], 0);
+level.setWalls([
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+], 1);
+
+const elevations = level.walls;
+const mapWidth = level.width;
+const mapHeight = level.height;
 
 export default class Raycast {
     constructor(canvas) {
@@ -145,7 +161,7 @@ export default class Raycast {
         this._context.fillRect(x, y, width, height);
     }
 
-    _raycast() {
+    _raycast(elevation) {
         // Loop through each column (x) of pixels across the canvas
         for(let x = 0; x < this._width; x++) {
             // Only debug the center-most ray
@@ -216,7 +232,7 @@ export default class Raycast {
                 }
 
                 // Check if ray has hit a wall
-                if (this._getMapTileByXY(mapX, mapY) > 0) hit = true;
+                if (level.getWallTileByXY(mapX, mapY, elevation) > 0) hit = true;
             }
 
             // Stop all calucations if outside bounds of map
@@ -231,6 +247,8 @@ export default class Raycast {
             const lineHeight = Math.floor(this._height / rayDistance);
             const halfLineHeight = lineHeight / 2;
 
+            const elevationOffset = Math.floor(lineHeight * elevation);
+
             // Calculate lowest and highest pixel to fill in current stripe
             let drawStart = -halfLineHeight + this._halfHeight;
             if (drawStart < 0) drawStart = 0;
@@ -240,7 +258,7 @@ export default class Raycast {
 
             // Choose wall color
             let color
-            switch(this._getMapTileByXY(mapX, mapY)) {
+            switch(level.getWallTileByXY(mapX, mapY, elevation)) {
                   case 1:
                       color = '#F00';
                       break;
@@ -262,18 +280,18 @@ export default class Raycast {
             if (debug) color = '#FFF';
 
             // Draw wall sliver
-            this._drawFilledRect(x, drawStart, 1, lineHeight, color);
+            this._drawFilledRect(x, drawStart - elevationOffset, 1, lineHeight, color);
         }
-    }
-
-    _getMapTileByXY(x, y) {
-        const mapTileIndex = y * mapWidth + x;
-        return map[mapTileIndex];
     }
 
     update(secondsElapsed) {
         this._drawFilledRect(0, 0, this._width, this._height, '#000000');
-        this._raycast();
+
+        // for each elevation within the level, cast rays
+        for (let i = elevations.length - 1; i >= 0; i--) {
+            this._raycast(i);
+        }
+
         this._handleControlStateInput(secondsElapsed);
     }
 }
