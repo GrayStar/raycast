@@ -30,12 +30,12 @@ export default class Raycast {
             position: {
                 x: 2,
                 y: 2,
-                moveSpeed: 4,
-                rotationSpeed: 3,
             },
             direction: {
                 angle: 0,
             },
+            moveSpeed: 4,
+            rotationSpeed: 3,
         };
         this._player.direction.radian = degreeToRadian(this._player.direction.angle);
         this._player.direction.x = radianToVx(this._player.direction.radian);
@@ -107,8 +107,8 @@ export default class Raycast {
             dy -= this._player.direction.y * moveSpeed;
         }
 
-        this.posX += dx;
-        this.posY += dy;
+        this._player.position.x += dx;
+        this._player.position.y += dy;
 
         if (this._controlStates.rotateLeft) {
             const oldPlayerDirectionX = this._player.direction.x;
@@ -204,12 +204,10 @@ export default class Raycast {
                 if (this.getMapTileByXY(mapX, mapY) > 0) hit = 1;
             }
 
-            console.log('mapX', mapX);
-            console.log('mapY', mapY);
-
             // Calculate distance projected on camera direction
             if (side === 0) perpWallDist = (mapX - this._player.position.x + (1 - stepX) / 2) / ray.direction.x;
             else perpWallDist = (mapY - this._player.position.y + (1 - stepY) / 2) / ray.direction.y;
+
 
             // Calculate height of line to draw on screen
             const lineHeight = parseInt(this._height / perpWallDist);
@@ -256,7 +254,7 @@ export default class Raycast {
 
     update(secondsElapsed) {
         this.drawFilledRect(0, 0, this._width, this._height, '#000000');
-        this.raycast();
-        this._handleControlStateInput();
+        //this.raycast();
+        this._handleControlStateInput(secondsElapsed);
     }
 }
