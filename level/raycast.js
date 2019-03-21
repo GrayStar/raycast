@@ -9,7 +9,6 @@ import Level from 'app/level/level';
 const BYTES_PER_PIXEL = 4;
 
 const level = new Level();
-
 level.setWalls([
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -237,7 +236,6 @@ export default class Raycast {
 
                 // Check if ray has hit a wall
                 if (level.getWallTileByXY(mapX, mapY, elevation) > 0) {
-
                     // If the elevation is above the player, do not stop the cast,
                     // save the wall data to the buffer, this allows for overhangs
                     if (elevation > this._player.position.elevation) {
