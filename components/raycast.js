@@ -248,9 +248,6 @@ export default class Raycast {
                   case 3:
                       color = '#00F';
                       break;
-                  case 4:
-                      color = '#FFF';
-                      break;
                   default:
                       color = '#FF0';
                       break;

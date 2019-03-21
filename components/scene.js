@@ -4,6 +4,9 @@ import Raycast from 'app/components/raycast';
 export default class Scene extends Component {
     constructor (props) {
         super(props);
+
+        this.state = { looping: false };
+
         this.frame = this.frame.bind(this);
     }
 
@@ -12,11 +15,19 @@ export default class Scene extends Component {
     }
 
     start() {
-        this._lastTime = 0;
-        requestAnimationFrame(this.frame);
+        this.setState({ looping: true }, () => {
+            this._lastTime = 0;
+            requestAnimationFrame(this.frame);
+        });
+    }
+
+    stop() {
+        this.setState({ looping: false });
     }
 
     frame(time) {
+        if (!this.state.looping) return;
+
         const secondsElapsed = (time - this._lastTime) / 1000;
         this._lastTime = time;
 

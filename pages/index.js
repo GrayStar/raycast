@@ -8,8 +8,23 @@ import Scene from 'app/components/scene';
 import styles from 'app/scss/pages/index.scss';
 
 export default class Index extends Page {
+    constructor(props) {
+        super(props);
+
+        this._handleStartButtonClick = this._handleStartButtonClick.bind(this);
+        this._handleStopButtonClick = this._handleStopButtonClick.bind(this);
+    }
+
     componentDidMount() {
         this._scene.start();
+    }
+
+    _handleStartButtonClick() {
+        this._scene.start();
+    }
+
+    _handleStopButtonClick() {
+        this._scene.stop();
     }
 
     get _successState() {
@@ -20,6 +35,13 @@ export default class Index extends Page {
                         <Row>
                             <Col sm={12}>
                                 <Scene ref={ scene => this._scene = scene }/>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col sm={12}>
+                                <p>Scene starts automatically</p>
+                                <button onClick={ this._handleStartButtonClick }>Start Scene</button>
+                                <button onClick={ this._handleStopButtonClick }>Stop Scene</button>
                             </Col>
                         </Row>
                     </Container>
