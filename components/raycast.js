@@ -7,14 +7,14 @@ import {
 const BYTES_PER_PIXEL = 4;
 
 const map = [
-    1, 1, 1, 1, 1, 1, 1, 3,
+    1, 1, 0, 1, 1, 1, 1, 1,
     1, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 2,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 2, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 3,
+    1, 0, 0, 0, 0, 3, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 1,
-    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 0, 1, 1, 1, 1, 1,
 ];
 const mapWidth = 8;
 const mapHeight = 8;
@@ -25,6 +25,8 @@ export default class Raycast {
         this._width = this._canvas.width;
         this._height = this._canvas.height;
         this._context = this._canvas.getContext('2d');
+
+        this._halfWidth = this._width / 2;
 
         this._player = {
             position: {
@@ -145,6 +147,9 @@ export default class Raycast {
     _raycast() {
         // Loop through each column (x) of pixels across the canvas
         for(let x = 0; x < this._width; x++) {
+            // Only debug the center-most ray
+            let debug = false;
+            if (x === this._halfWidth) debug = true;
 
             // X-coordinate in camera space
             const cameraX = 2 * x / this._width - 1;
@@ -189,8 +194,9 @@ export default class Raycast {
             // Perform DDA
             let hit = false; // Was a wall hit?
             let side; // Was a NS or a EW wall hit?
+            let outsideBounds = false;
 
-            while (hit === false) {
+            while (hit === false && outsideBounds === false) {
                 // Jump to next map square, OR in x-direction, OR in y-direction
                 if (sideDistanceX < sideDistanceY) {
                     sideDistanceX += deltaDistanceX;
@@ -202,15 +208,23 @@ export default class Raycast {
                     side = 1;
                 }
 
+                // Break loop if ray goes outside bounds of map
+                if (mapX < 0 || mapX >= mapWidth || mapY < 0 || mapY >= mapHeight) {
+                    outsideBounds = true;
+                    continue;
+                }
+
                 // Check if ray has hit a wall
                 if (this._getMapTileByXY(mapX, mapY) > 0) hit = true;
             }
+
+            // Stop all calucations if outside bounds of map
+            if (outsideBounds) continue;
 
             // Calculate distance projected on camera direction
             let rayDistance;
             if (side === 0) rayDistance = (mapX - this._player.position.x + (1 - stepX) / 2) / rayDirectionX;
             else rayDistance = (mapY - this._player.position.y + (1 - stepY) / 2) / rayDirectionY;
-
 
             // Calculate height of line to draw on screen
             const lineHeight = Math.floor(this._height / rayDistance);
@@ -244,6 +258,9 @@ export default class Raycast {
 
             // Give x and y sides different brightness
             if (side === 1) color = color.replace('F', '8');
+
+            // Color the debug column
+            if (debug) color = '#FFF';
 
             // Draw wall sliver
             this._drawFilledRect(x, drawStart, 1, lineHeight, color);
