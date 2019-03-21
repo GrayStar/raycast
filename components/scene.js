@@ -1,7 +1,5 @@
 import { Component } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
-
-import styles from 'app/scss/components/header.scss';
+import Raycast from 'app/components/raycast';
 
 export default class Scene extends Component {
     constructor (props) {
@@ -10,9 +8,7 @@ export default class Scene extends Component {
     }
 
     componentDidMount() {
-        this._width = this._canvas.width;
-        this._height = this._canvas.height;
-        this._context = this._canvas.getContext('2d');
+        this._raycast = new Raycast(this._canvas);
     }
 
     start() {
@@ -28,13 +24,8 @@ export default class Scene extends Component {
         requestAnimationFrame(this.frame);
     }
 
-    drawFilledRect(x, y, width, height, color) {
-        this._context.fillStyle = color;
-        this._context.fillRect(x, y, width, height);
-    }
-
     update(secondsElapsed) {
-        this.drawFilledRect(0, 0, this._width, this._height / 2, '#FF0000');
+        this._raycast.update(secondsElapsed);
     }
 
     render() {
