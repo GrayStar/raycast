@@ -1,7 +1,6 @@
 require('es6-promise').polyfill();
 import fetch from 'isomorphic-fetch';
 
-const rootUrl = 'https://api.pokemontcg.io';
 const headers = { 'Content-Type': 'application/json' };
 
 const apiCall = {
@@ -35,13 +34,3 @@ const apiCall = {
         }
     },
 };
-
-export const getPokemonCards = async () => {
-    const url = '/v1/cards';
-    return await apiCall.get(url);
-}
-
-export const getPokemonCardDetails = async (cardId) => {
-    const url = `/v1/cards/${cardId}`;
-    return await apiCall.get(url);
-}
