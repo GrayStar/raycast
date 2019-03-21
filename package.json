@@ -1,8 +1,8 @@
 {
-	"name": "nextjs-boilerplate",
-	"description": "Basic setup for a Next.js project",
+	"name": "raycast",
+	"description": "Raycast in react project",
 	"license": "",
-	"repository": "https://github.com/GrayStar/nextjs-boilerplate",
+	"repository": "https://github.com/GrayStar/raycast",
 	"private": false,
 	"author": "https://github.com/GrayStar",
 	"devDependencies": {
