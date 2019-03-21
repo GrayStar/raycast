@@ -28,8 +28,8 @@ export default class Raycast {
 
         this._player = {
             position: {
-                x: 2,
-                y: 2,
+                x: 2.5,
+                y: 2.5,
             },
             direction: {
                 angle: 0,
