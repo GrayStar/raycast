@@ -27,6 +27,7 @@ export default class Raycast {
         this._context = this._canvas.getContext('2d');
 
         this._halfWidth = this._width / 2;
+        this._halfHeight = this._height / 2;
 
         this._player = {
             position: {
@@ -228,12 +229,13 @@ export default class Raycast {
 
             // Calculate height of line to draw on screen
             const lineHeight = Math.floor(this._height / rayDistance);
+            const halfLineHeight = lineHeight / 2;
 
             // Calculate lowest and highest pixel to fill in current stripe
-            let drawStart = (-lineHeight / 2 + this._height / 2);
+            let drawStart = -halfLineHeight + this._halfHeight;
             if (drawStart < 0) drawStart = 0;
 
-            let drawEnd = (lineHeight / 2 + this._height / 2);
+            let drawEnd = halfLineHeight + this._halfHeight;
             if (drawEnd >= this._height) drawEnd = this._height - 1;
 
             // Choose wall color

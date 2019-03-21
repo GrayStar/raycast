@@ -15,10 +15,6 @@ export default class Index extends Page {
         this._handleStopButtonClick = this._handleStopButtonClick.bind(this);
     }
 
-    componentDidMount() {
-        this._scene.start();
-    }
-
     _handleStartButtonClick() {
         this._scene.start();
     }
