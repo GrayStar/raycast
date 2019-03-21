@@ -237,32 +237,24 @@ export default class Raycast {
 
                 // Check if ray has hit a wall
                 if (level.getWallTileByXY(mapX, mapY, elevation) > 0) {
+
+                    // If the elevation is above the player, do not stop the cast,
+                    // save the wall data to the buffer, this allows for overhangs
                     if (elevation > this._player.position.elevation) {
-
-                        let rayDistance;
-                        if (side === 0) rayDistance = (mapX - this._player.position.x + (1 - stepX) / 2) / rayDirectionX;
-                        else rayDistance = (mapY - this._player.position.y + (1 - stepY) / 2) / rayDirectionY;
-
-                        // Calculate height of line to draw on screen
-                        const lineHeight = Math.floor(this._height / rayDistance);
-                        const halfLineHeight = lineHeight / 2;
-                        const elevationOffset = Math.floor(lineHeight * elevation);
-
-                        // Calculate lowest and highest pixel to fill in current stripe
-                        let drawStart = -halfLineHeight + this._halfHeight;
-                        if (drawStart < 0) drawStart = 0;
-
-                        let drawEnd = halfLineHeight + this._halfHeight;
-                        if (drawEnd >= this._height) drawEnd = this._height - 1;
+                        const {
+                            lineHeight,
+                            elevationOffset,
+                            drawStart,
+                            drawEnd,
+                            color,
+                        } = this._getColumnPropertiesFromRay(side, mapX, stepX, rayDirectionX, mapY, stepY, rayDirectionY, elevation);
 
                         wallBuffer.push({
                             x,
                             lineHeight,
-                            drawStart,
-                            drawEnd,
                             elevationOffset,
-                            side,
-                            wallType: level.getWallTileByXY(mapX, mapY, elevation),
+                            drawStart,
+                            color,
                         });
                     } else {
                         hit = true;
@@ -273,43 +265,12 @@ export default class Raycast {
             // Stop all calucations if outside bounds of map
             if (outsideBounds) continue;
 
-            // Calculate distance projected on camera direction
-            let rayDistance;
-            if (side === 0) rayDistance = (mapX - this._player.position.x + (1 - stepX) / 2) / rayDirectionX;
-            else rayDistance = (mapY - this._player.position.y + (1 - stepY) / 2) / rayDirectionY;
-
-            // Calculate height of line to draw on screen
-            const lineHeight = Math.floor(this._height / rayDistance);
-            const halfLineHeight = lineHeight / 2;
-
-            const elevationOffset = Math.floor(lineHeight * elevation);
-
-            // Calculate lowest and highest pixel to fill in current stripe
-            let drawStart = -halfLineHeight + this._halfHeight;
-            if (drawStart < 0) drawStart = 0;
-
-            let drawEnd = halfLineHeight + this._halfHeight;
-            if (drawEnd >= this._height) drawEnd = this._height - 1;
-
-            // Choose wall color
-            let color
-            switch(level.getWallTileByXY(mapX, mapY, elevation)) {
-                  case 1:
-                      color = '#F00';
-                      break;
-                  case 2:
-                      color = '#0F0';
-                      break;
-                  case 3:
-                      color = '#00F';
-                      break;
-                  default:
-                      color = '#FF0';
-                      break;
-            }
-
-            // Give x and y sides different brightness
-            if (side === 1) color = color.replace('F', '8');
+            const {
+                lineHeight,
+                elevationOffset,
+                drawStart,
+                color,
+            } = this._getColumnPropertiesFromRay(side, mapX, stepX, rayDirectionX, mapY, stepY, rayDirectionY, elevation);
 
             // Color the debug column
             if (debug) color = '#FFF';
@@ -321,28 +282,57 @@ export default class Raycast {
         // draw wallBuffer in reverse order
         for(let i = wallBuffer.length - 1; i >= 0; i--) {
             const wall = wallBuffer[i];
-
-            let color;
-            switch(wall.wallType) {
-                case 1:
-                    color = '#F00';
-                    break;
-                case 2:
-                    color = '#0F0';
-                    break;
-                case 3:
-                    color = '#00F';
-                    break;
-                default:
-                    color = '#FF0';
-                    break;
-            }
-
-            // Give x and y sides different brightness
-            if (wall.side === 1) color = color.replace('F', '8');
-
-            this._drawFilledRect(wall.x, wall.drawStart - wall.elevationOffset, 1, wall.lineHeight, color);
+            this._drawFilledRect(wall.x, wall.drawStart - wall.elevationOffset, 1, wall.lineHeight, wall.color);
         }
+    }
+
+    _getColumnPropertiesFromRay(side, mapX, stepX, rayDirectionX, mapY, stepY, rayDirectionY, elevation) {
+        // Calculate distance projected on camera direction
+        let rayDistance;
+        if (side === 0) rayDistance = (mapX - this._player.position.x + (1 - stepX) / 2) / rayDirectionX;
+        else rayDistance = (mapY - this._player.position.y + (1 - stepY) / 2) / rayDirectionY;
+
+        // Calculate height of line to draw on screen
+        const lineHeight = Math.floor(this._height / rayDistance);
+        const halfLineHeight = lineHeight / 2;
+
+        // Calculate the elevation offset
+        const elevationOffset = Math.floor(lineHeight * elevation);
+
+        // Calculate lowest and highest pixel to fill in current stripe
+        let drawStart = -halfLineHeight + this._halfHeight;
+        if (drawStart < 0) drawStart = 0;
+        let drawEnd = halfLineHeight + this._halfHeight;
+        if (drawEnd >= this._height) drawEnd = this._height - 1;
+
+        let color;
+        switch(level.getWallTileByXY(mapX, mapY, elevation)) {
+              case 1:
+                  color = '#F00';
+                  break;
+              case 2:
+                  color = '#0F0';
+                  break;
+              case 3:
+                  color = '#00F';
+                  break;
+              default:
+                  color = '#FF0';
+                  break;
+        }
+
+        // Give x and y sides different brightness
+        if (side === 1) color = color.replace('F', '8');
+
+        return {
+            rayDistance,
+            lineHeight,
+            halfLineHeight,
+            elevationOffset,
+            drawStart,
+            drawEnd,
+            color,
+        };
     }
 
     update(secondsElapsed) {
