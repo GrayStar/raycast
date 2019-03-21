@@ -137,20 +137,19 @@ export default class Raycast {
         }
     }
 
-    drawFilledRect(x, y, width, height, color) {
+    _drawFilledRect(x, y, width, height, color) {
         this._context.fillStyle = color;
         this._context.fillRect(x, y, width, height);
     }
 
-    raycast() {
+    _raycast() {
         for(let x = 0; x < this._width; x++) {
-            const ray = { direction: {} };
             const cameraX = 2 * x / this._width - 1; // x-coordinate in camera space
 
-            ray.direction.x = this._player.direction.x + this._camera.direction.x * cameraX;
-            ray.direction.y = this._player.direction.y + this._camera.direction.y * cameraX;
+            const rayDirectionX = this._player.direction.x + this._camera.direction.x * cameraX;
+            const rayDirectionY = this._player.direction.y + this._camera.direction.y * cameraX;
 
-            // which tile of the map we're in
+            // current tile of the map the player is in
             let mapX = Math.floor(this._player.position.x);
             let mapY = Math.floor(this._player.position.y);
 
@@ -159,8 +158,8 @@ export default class Raycast {
             let sideDistY;
 
             // length of ray from one x or y-side to next x or y-side
-            const deltaDistX = Math.abs(1 / ray.direction.x);
-            const deltaDistY = Math.abs(1 / ray.direction.y);
+            const deltaDistX = Math.abs(1 / rayDirectionX);
+            const deltaDistY = Math.abs(1 / rayDirectionY);
             let perpWallDist;
 
             // what direction to step in x or y-direction (either +1 or -1)
@@ -168,10 +167,10 @@ export default class Raycast {
             let stepY;
 
             let hit = 0; // was there a wall hit?
-            let side; // was a NS or a EW wall hit?
+            let side;    // was a NS or a EW wall hit?
 
             // calculate step and initial sideDist
-            if (ray.direction.x < 0) {
+            if (rayDirectionX < 0) {
                 stepX = -1;
                 sideDistX = (this._player.position.x - mapX) * deltaDistX;
             } else {
@@ -179,7 +178,7 @@ export default class Raycast {
                 sideDistX = (mapX + 1 - this._player.position.x) * deltaDistX;
             }
 
-            if (ray.direction.y < 0) {
+            if (rayDirectionY < 0) {
                 stepY = -1;
                 sideDistY = (this._player.position.y - mapY) * deltaDistY;
             } else {
@@ -201,17 +200,16 @@ export default class Raycast {
                 }
 
                 // Check if ray has hit a wall
-                if (this.getMapTileByXY(mapX, mapY) > 0) hit = 1;
+                if (this._getMapTileByXY(mapX, mapY) > 0) hit = 1;
             }
 
             // Calculate distance projected on camera direction
-            if (side === 0) perpWallDist = (mapX - this._player.position.x + (1 - stepX) / 2) / ray.direction.x;
-            else perpWallDist = (mapY - this._player.position.y + (1 - stepY) / 2) / ray.direction.y;
+            if (side === 0) perpWallDist = (mapX - this._player.position.x + (1 - stepX) / 2) / rayDirectionX;
+            else perpWallDist = (mapY - this._player.position.y + (1 - stepY) / 2) / rayDirectionY;
 
 
             // Calculate height of line to draw on screen
             const lineHeight = parseInt(this._height / perpWallDist);
-            const playerElevationOffset = Math.floor(this.playerElevation * lineHeight);
 
             // calculate lowest and highest pixel to fill in current stripe
             let drawStart = (-lineHeight / 2 + this._height / 2);
@@ -222,7 +220,7 @@ export default class Raycast {
 
             //choose wall color
             let color
-            switch(this.getMapTileByXY(mapX, mapY))
+            switch(this._getMapTileByXY(mapX, mapY))
             {
                   case 1:
                       color = '#F00';
@@ -241,20 +239,21 @@ export default class Raycast {
                       break;
             }
 
-            //give x and y sides different brightness
+            // //give x and y sides different brightness
             if (side == 1) color = color.replace('F', '8');
 
-            this.drawFilledRect(x, drawStart, 1, lineHeight, color);
+            this._drawFilledRect(x, drawStart, 1, lineHeight, color);
         }
     }
 
-    getMapTileByXY(x, y) {
-        return y * mapWidth + x;
+    _getMapTileByXY(x, y) {
+        const mapTileIndex = y * mapWidth + x;
+        return map[mapTileIndex];
     }
 
     update(secondsElapsed) {
-        this.drawFilledRect(0, 0, this._width, this._height, '#000000');
-        //this.raycast();
+        this._drawFilledRect(0, 0, this._width, this._height, '#000000');
+        this._raycast();
         this._handleControlStateInput(secondsElapsed);
     }
 }
