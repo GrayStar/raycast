@@ -1,5 +1,10 @@
 import { Component } from 'react';
+
+import Bitmap from 'app/level/bitmap';
+import Level from 'app/level/level';
 import Raycast from 'app/level/raycast';
+
+import { getImage } from 'app/utilities/image-utilities';
 
 export default class Scene extends Component {
     constructor (props) {
@@ -10,8 +15,51 @@ export default class Scene extends Component {
         this.frame = this.frame.bind(this);
     }
 
-    componentDidMount() {
-        this._raycast = new Raycast(this._canvas);
+    async componentDidMount() {
+
+        const [
+            stoneBlockImage,
+            stoneBlockImageWidthGrass,
+        ] = await Promise.all([
+            getImage('https://i.imgur.com/1jkxxi1.png'),
+            getImage('https://i.imgur.com/yeTdmkj.png'),
+        ]);
+
+        const stoneBlockTexture = new Bitmap(stoneBlockImage, 16, 16);
+        const stoneBlockTextureWithGrass = new Bitmap(stoneBlockImageWidthGrass, 16, 16);
+
+        //decorate blocks with textures and assign to map
+        //TODO
+
+        //make level using block map
+        const level = new Level();
+        level.setWalls([
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ], 0);
+        level.setWalls([
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ], 1);
+
+        const elevations = level.walls;
+        const mapWidth = level.width;
+        const mapHeight = level.height;
+
+        //ray cast to canvas with level
+        this._raycast = new Raycast(this._canvas, level);
     }
 
     start() {

@@ -6,43 +6,23 @@ import {
 
 import Level from 'app/level/level';
 
+
 const BYTES_PER_PIXEL = 4;
 
-const level = new Level();
-level.setWalls([
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-], 0);
-level.setWalls([
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-], 1);
-
-const elevations = level.walls;
-const mapWidth = level.width;
-const mapHeight = level.height;
-
 export default class Raycast {
-    constructor(canvas) {
+    constructor(canvas, level) {
+        // canvas
         this._canvas = canvas;
         this._width = this._canvas.width;
         this._height = this._canvas.height;
-        this._context = this._canvas.getContext('2d');
-
         this._halfWidth = this._width / 2;
         this._halfHeight = this._height / 2;
+        this._context = this._canvas.getContext('2d');
+
+        this.MAP = level;
+        this.MAP_ELEVATIONS = level.walls;
+        this.MAP_WIDTH = level.width;
+        this.MAP_HEIGHT = level.height;
 
         this._player = {
             position: {
@@ -229,13 +209,13 @@ export default class Raycast {
                 }
 
                 // Break loop if ray goes outside bounds of map
-                if (mapX < 0 || mapX >= mapWidth || mapY < 0 || mapY >= mapHeight) {
+                if (mapX < 0 || mapX >= this.MAP_WIDTH || mapY < 0 || mapY >= this.MAP_HEIGHT) {
                     outsideBounds = true;
                     continue;
                 }
 
                 // Check if ray has hit a wall
-                if (level.getWallTileByXY(mapX, mapY, elevation) > 0) {
+                if (this.MAP.getWallTileByXY(mapX, mapY, elevation) > 0) {
                     // If the elevation is above the player, do not stop the cast,
                     // save the wall data to the buffer, this allows for overhangs
                     if (elevation > this._player.position.elevation) {
@@ -304,7 +284,7 @@ export default class Raycast {
         if (drawEnd >= this._height) drawEnd = this._height - 1;
 
         let color;
-        switch(level.getWallTileByXY(mapX, mapY, elevation)) {
+        switch(this.MAP.getWallTileByXY(mapX, mapY, elevation)) {
               case 1:
                   color = '#F00';
                   break;
@@ -337,7 +317,7 @@ export default class Raycast {
         this._drawFilledRect(0, 0, this._width, this._height, '#000000');
 
         // for each elevation within the level, cast rays
-        for (let i = elevations.length - 1; i >= 0; i--) {
+        for (let i = this.MAP_ELEVATIONS.length - 1; i >= 0; i--) {
             this._raycast(i);
         }
 
