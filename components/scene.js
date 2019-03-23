@@ -2,6 +2,7 @@ import { Component } from 'react';
 
 import Bitmap from 'app/level/bitmap';
 import Block from 'app/level/block';
+import Floor from 'app/level/floor';
 import Level from 'app/level/level';
 import Raycast from 'app/level/raycast';
 
@@ -41,8 +42,12 @@ export default class Scene extends Component {
         wallBlocks[1] = new Block(stoneBlockTexture);
         wallBlocks[2] = new Block(stoneBlockTextureWithGrass);
 
+        const floorBlocks = [];
+        floorBlocks[1] = new Floor(grassTexture);
+        floorBlocks[2] = new Floor(grassWithFlowerTexture);
+
         // generate a new level
-        const level = new Level(wallBlocks);
+        const level = new Level(wallBlocks, floorBlocks);
         level.setWalls([
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -63,6 +68,17 @@ export default class Scene extends Component {
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         ], 1);
+
+        level.setFloors([
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ], 0);
 
         // ray cast the level to the canvas
         this._raycast = new Raycast(this._canvas, level);

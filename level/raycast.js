@@ -30,6 +30,8 @@ export default class Raycast {
         // map information
         this.MAP = level;
         this.MAP_WALL_BLOCKS = level.wallBlocks;
+        this.MAP_FLOOR_BLOCKS = level.floorBlocks;
+        this.MAP_CEILING_BLOCKS = level.ceilingBlocks;
         this.MAP_ELEVATIONS = level.walls;
         this.MAP_WIDTH = level.width;
         this.MAP_HEIGHT = level.height;
@@ -171,6 +173,19 @@ export default class Raycast {
         this._bufferPixels = this._bufferContext.getImageData(0, 0, this._width, this._height);
     }
 
+    _drawFloor(x, y, floorX, floorY, elevation) {
+        const blockTypeIndex = this.MAP.getFloorTileByXY(Math.floor(floorX), Math.floor(floorY), elevation);
+        const floor = this.MAP_FLOOR_BLOCKS[blockTypeIndex];
+
+        const floorTextureX = Math.floor(floorX * floor.texture.width) % floor.texture.width;
+        const floorTextureY = Math.floor(floorY * floor.texture.height) % floor.texture.height;
+
+        const { red, green, blue, alpha } = getRgbaFromTexture(floor.texture, floorTextureX, floorTextureY);
+        if (alpha === 0) return;
+
+        this._colorBufferPixel(x, y, red, green, blue, alpha);
+    }
+
     _raycast(elevation) {
         // Set up a buffer for elevations
         const wallBuffer = [];
@@ -280,9 +295,11 @@ export default class Raycast {
             // Stop all calucations if outside bounds of map
             if (outsideBounds) continue;
 
-            const {
+            let {
+                rayDistance,
                 lineHeight,
                 halfLineHeight,
+                playerElevationOffset,
                 drawStart,
                 drawEnd,
                 wallX,
@@ -313,9 +330,47 @@ export default class Raycast {
 
                 this._colorBufferPixel(x, y - (lineHeight * elevation), red, green, blue, alpha);
             }
+
+            // Don't draw floors for levels above the player
+            if (elevation > this._player.position.elevation) continue;
+
+            /* ------------------------------------- */
+            /*             FLOOR CASTING             */
+            /* ------------------------------------- */
+            // X, y position of the floor texel at the bottom of the wall
+            let floorXWall, floorYWall;
+
+            // 4 different wall directions possible
+            if (side === 0 && rayDirectionX > 0) {
+                floorXWall = mapX;
+                floorYWall = mapY + wallX;
+            } else if (side === 0 && rayDirectionX < 0) {
+                floorXWall = mapX + 1;
+                floorYWall = mapY + wallX;
+            } else if (side === 1 && rayDirectionY > 0) {
+                floorXWall = mapX + wallX;
+                floorYWall = mapY;
+            } else {
+                floorXWall = mapX + wallX;
+                floorYWall = mapY + 1;
+            }
+
+            drawEnd = Math.floor(drawEnd);
+            for (let y = drawEnd; y < this._height; y++) {
+                const currentDistance = this._height / (2 * y - this._height);
+                const weight = currentDistance / rayDistance;
+                const floorX = weight * floorXWall + (1 - weight) * this._player.position.x;
+                const floorY = weight * floorYWall + (1 - weight) * this._player.position.y;
+
+                this._drawFloor(x, y, floorX, floorY, elevation);
+            }
+            /* ------------------------------------- */
+            /*            END FLOOR CASTING          */
+            /* ------------------------------------- */
         }
 
         // draw wallBuffer in reverse order
+        if (wallBuffer.length <= 0) return;
         for(let i = wallBuffer.length - 1; i >= 0; i--) {
             const wall = wallBuffer[i];
 
@@ -349,12 +404,13 @@ export default class Raycast {
         // Calculate height of line to draw on screen
         const lineHeight = Math.floor(this._height / rayDistance);
         const halfLineHeight = lineHeight / 2;
+        const playerElevationOffset = Math.floor(this._player.position.elevation * lineHeight);
 
         // Calculate lowest and highest pixel to fill in current stripe
         let drawStart = -halfLineHeight + this._halfHeight;
         if (drawStart < 0) drawStart = 0;
         let drawEnd = halfLineHeight + this._halfHeight;
-        if (drawEnd >= this._height) drawEnd = this._height - 1;
+        if (drawEnd >= this._height) drawEnd = this._height;
 
         // Calculate value of wallX
         let wallX; // Where exactly on the wall the ray hit
@@ -374,6 +430,7 @@ export default class Raycast {
             rayDistance,
             lineHeight,
             halfLineHeight,
+            playerElevationOffset,
             drawStart,
             drawEnd,
             wallX,
@@ -384,7 +441,7 @@ export default class Raycast {
 
     update(secondsElapsed) {
         // Draw background (sky)
-        this._drawFilledRectangle(0, 0, this._width, this._height, '#3079B5');
+        this._drawFilledRectangle(0, 0, this._width, this._halfHeight, '#3079B5');
 
         // for each elevation within the level, cast rays
         for (let i = this.MAP_ELEVATIONS.length - 1; i >= 0; i--) this._raycast(i);

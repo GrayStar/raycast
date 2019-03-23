@@ -1,9 +1,11 @@
 export default class Level {
     constructor(wallBlocks = [], floorBlocks = [], ceilingBlocks = []) {
+        // block types for textures
         this._wallBlocks = wallBlocks;
         this._floorBlocks = floorBlocks;
         this._ceilingBlocks = ceilingBlocks;
 
+        // map of blocks
         this._wallMap = [];
         this._floorMap = [];
         this._ceilingMap = [];
