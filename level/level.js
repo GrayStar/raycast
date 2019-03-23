@@ -1,5 +1,9 @@
 export default class Level {
-    constructor() {
+    constructor(wallBlocks = [], floorBlocks = [], ceilingBlocks = []) {
+        this._wallBlocks = wallBlocks;
+        this._floorBlocks = floorBlocks;
+        this._ceilingBlocks = ceilingBlocks;
+
         this._wallMap = [];
         this._floorMap = [];
         this._ceilingMap = [];
@@ -71,5 +75,17 @@ export default class Level {
 
     get height() {
         return this._height;
+    }
+
+    get wallBlocks() {
+        return this._wallBlocks;
+    }
+
+    get floorBlocks() {
+        return this._floorBlocks;
+    }
+
+    get ceilingBlocks() {
+        return this._ceilingBlocks;
     }
 }

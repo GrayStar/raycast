@@ -3,6 +3,7 @@ import {
     radianToVx,
     radianToVy,
 } from 'app/utilities/math-utilities';
+import { getRgbaFromTexture } from 'app/utilities/image-utilities';
 
 import Level from 'app/level/level';
 
@@ -19,11 +20,21 @@ export default class Raycast {
         this._halfHeight = this._height / 2;
         this._context = this._canvas.getContext('2d');
 
+        // rendering buffer
+        this._buffer = document.createElement('canvas');
+        this._buffer.width = this._width;
+        this._buffer.height = this._height;
+        this._bufferContext = this._buffer.getContext('2d');
+        this._bufferPixels = this._bufferContext.getImageData(0, 0, this._width, this._height);
+
+        // map information
         this.MAP = level;
+        this.MAP_WALL_BLOCKS = level.wallBlocks;
         this.MAP_ELEVATIONS = level.walls;
         this.MAP_WIDTH = level.width;
         this.MAP_HEIGHT = level.height;
 
+        // player
         this._player = {
             position: {
                 x: 1.5,
@@ -136,6 +147,24 @@ export default class Raycast {
         }
     }
 
+    _blitCanvas() {
+        this._context.putImageData(this._bufferPixels, 0, 0);
+    }
+
+    _colorBufferPixel(x, y, r, g, b, a) {
+        const targetBufferPixelIndex = ((this._bufferPixels.width * 4) * y) + (4 * x);
+        this._bufferPixels.data[targetBufferPixelIndex] = r;
+        this._bufferPixels.data[targetBufferPixelIndex + 1] = g;
+        this._bufferPixels.data[targetBufferPixelIndex + 2] = b;
+        this._bufferPixels.data[targetBufferPixelIndex + 3] = a;
+    }
+
+    _drawText(text, x, y, color) {
+        this._context.fillStyle = color;
+        this._context.font = '12px sans-serif';
+        this._context.fillText(text, x, y);
+    }
+
     _drawFilledRect(x, y, width, height, color) {
         this._context.fillStyle = color;
         this._context.fillRect(x, y, width, height);
@@ -221,18 +250,25 @@ export default class Raycast {
                     if (elevation > this._player.position.elevation) {
                         const {
                             lineHeight,
-                            elevationOffset,
+                            halfLineHeight,
                             drawStart,
                             drawEnd,
-                            color,
+                            wallX,
+                            textureX,
+                            texture,
                         } = this._getColumnPropertiesFromRay(side, mapX, stepX, rayDirectionX, mapY, stepY, rayDirectionY, elevation);
 
                         wallBuffer.push({
                             x,
                             lineHeight,
-                            elevationOffset,
+                            halfLineHeight,
+                            elevation,
                             drawStart,
-                            color,
+                            drawEnd,
+                            wallX,
+                            textureX,
+                            texture,
+                            side,
                         });
                     } else {
                         hit = true;
@@ -245,22 +281,61 @@ export default class Raycast {
 
             const {
                 lineHeight,
-                elevationOffset,
+                halfLineHeight,
                 drawStart,
-                color,
+                drawEnd,
+                wallX,
+                textureX,
+                texture,
             } = this._getColumnPropertiesFromRay(side, mapX, stepX, rayDirectionX, mapY, stepY, rayDirectionY, elevation);
 
+            let color;
             // Color the debug column
             if (debug) color = '#FFF';
 
-            // Draw wall sliver
-            this._drawFilledRect(x, drawStart - elevationOffset, 1, lineHeight, color);
+            // Loop through y pixels and draw texture
+            for (let y = drawStart; y < drawEnd; y++) {
+                const d = y - this._halfHeight + halfLineHeight;
+                // TODO: avoid the division to speed this up
+                const textureY = Math.floor((d * texture.height) / lineHeight);
+                y = Math.round(y);
+
+                let { red, green, blue, alpha } = getRgbaFromTexture(texture, textureX, textureY);
+                if (alpha === 0) continue;
+
+                // make color darker for y-sides
+                if (side === 1) {
+                    red /= 1.5;
+                    green /= 1.5;
+                    blue /= 1.5;
+                }
+
+                this._colorBufferPixel(x, y - (lineHeight * elevation), red, green, blue, alpha);
+            }
         }
 
         // draw wallBuffer in reverse order
         for(let i = wallBuffer.length - 1; i >= 0; i--) {
             const wall = wallBuffer[i];
-            this._drawFilledRect(wall.x, wall.drawStart - wall.elevationOffset, 1, wall.lineHeight, wall.color);
+
+            for (let y = wall.drawStart; y < wall.drawEnd; y++) {
+                const d = y - this._halfHeight + wall.halfLineHeight;
+                // TODO: avoid the division to speed this up
+                const textureY = Math.floor((d * wall.texture.height) / wall.lineHeight);
+                y = Math.round(y);
+
+                let { red, green, blue, alpha } = getRgbaFromTexture(wall.texture, wall.textureX, textureY);
+                if (alpha === 0) continue;
+
+                // make color darker for y-sides
+                if (wall.side === 1) {
+                    red /= 1.5;
+                    green /= 1.5;
+                    blue /= 1.5;
+                }
+
+                this._colorBufferPixel(wall.x, y - (wall.lineHeight * wall.elevation), red, green, blue, alpha);
+            }
         }
     }
 
@@ -274,53 +349,48 @@ export default class Raycast {
         const lineHeight = Math.floor(this._height / rayDistance);
         const halfLineHeight = lineHeight / 2;
 
-        // Calculate the elevation offset
-        const elevationOffset = Math.floor(lineHeight * elevation);
-
         // Calculate lowest and highest pixel to fill in current stripe
         let drawStart = -halfLineHeight + this._halfHeight;
         if (drawStart < 0) drawStart = 0;
         let drawEnd = halfLineHeight + this._halfHeight;
         if (drawEnd >= this._height) drawEnd = this._height - 1;
 
-        let color;
-        switch(this.MAP.getWallTileByXY(mapX, mapY, elevation)) {
-              case 1:
-                  color = '#F00';
-                  break;
-              case 2:
-                  color = '#0F0';
-                  break;
-              case 3:
-                  color = '#00F';
-                  break;
-              default:
-                  color = '#FF0';
-                  break;
-        }
+        // Calculate value of wallX
+        let wallX; // Where exactly on the wall the ray hit
+        if (side === 0) wallX = this._player.position.y + rayDistance * rayDirectionY;
+        else wallX = this._player.position.x + rayDistance * rayDirectionX;
+        wallX -= Math.floor(wallX);
 
-        // Give x and y sides different brightness
-        if (side === 1) color = color.replace('F', '8');
+        const blockTypeIndex = this.MAP.getWallTileByXY(mapX, mapY, elevation);
+        const block = this.MAP_WALL_BLOCKS[blockTypeIndex];
+
+        // X coordinate on the texture
+        let textureX = Math.floor(wallX * block.texture.width);
+        if (side === 0 && rayDirectionX > 0) textureX = block.texture.width - textureX - 1;
+        if (side === 1 && rayDirectionY < 0) textureX = block.texture.width - textureX - 1;
 
         return {
             rayDistance,
             lineHeight,
             halfLineHeight,
-            elevationOffset,
             drawStart,
             drawEnd,
-            color,
+            wallX,
+            textureX,
+            texture: block.texture,
         };
     }
 
     update(secondsElapsed) {
-        this._drawFilledRect(0, 0, this._width, this._height, '#000000');
+        //this._drawFilledRect(0, 0, this._width, this._height, '#000000');
 
         // for each elevation within the level, cast rays
-        for (let i = this.MAP_ELEVATIONS.length - 1; i >= 0; i--) {
-            this._raycast(i);
-        }
+        for (let i = this.MAP_ELEVATIONS.length - 1; i >= 0; i--) this._raycast(i);
 
+        this._blitCanvas();
         this._handleControlStateInput(secondsElapsed);
+
+        const fps = Math.floor(1 / secondsElapsed);
+        this._drawText(`fps: ${ fps }`, 5, 15, '#000');
     }
 }
