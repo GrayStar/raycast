@@ -165,9 +165,10 @@ export default class Raycast {
         this._context.fillText(text, x, y);
     }
 
-    _drawFilledRect(x, y, width, height, color) {
-        this._context.fillStyle = color;
-        this._context.fillRect(x, y, width, height);
+    _drawFilledRectangle(x, y, width, height, color) {
+        this._bufferContext.fillStyle = color;
+        this._bufferContext.fillRect(x, y, width, height);
+        this._bufferPixels = this._bufferContext.getImageData(0, 0, this._width, this._height);
     }
 
     _raycast(elevation) {
@@ -382,7 +383,8 @@ export default class Raycast {
     }
 
     update(secondsElapsed) {
-        //this._drawFilledRect(0, 0, this._width, this._height, '#000000');
+        // Draw background (sky)
+        this._drawFilledRectangle(0, 0, this._width, this._height, '#3079B5');
 
         // for each elevation within the level, cast rays
         for (let i = this.MAP_ELEVATIONS.length - 1; i >= 0; i--) this._raycast(i);
