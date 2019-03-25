@@ -47,6 +47,7 @@ export default class Raycast2 {
         ];
         this._mapWidth = 8;
         this._mapHeight = 8;
+        this._mapWallTextures = [];
 
         this._keyCodes = {
             65: 'left',
@@ -68,6 +69,7 @@ export default class Raycast2 {
 
         this._container.appendChild(this._app.view);
 
+        this._texturesloaded = this._texturesloaded.bind(this);
         document.addEventListener('keydown', this._handleKeyEvent.bind(this, true), false);
         document.addEventListener('keyup', this._handleKeyEvent.bind(this, false), false);
     }
@@ -232,6 +234,19 @@ export default class Raycast2 {
 
             // Type of wall hit
             const mapIndex = this._getMapTileByXY(mapX, mapY);
+            const texture = this._mapWallTextures[mapIndex];
+
+            if (texture) {
+                // Calculate value of wallX
+                let wallX; // Where exactly on the wall the ray hit
+                if (side === 0) wallX = this._playerPositionY + rayDistance * rayDirectionY;
+                else wallX = this._playerPositionX + rayDistance * rayDirectionX;
+
+                // X coordinate on the texture
+                let textureX = Math.floor(wallX * texture.width);
+                if (side === 0 && rayDirectionX > 0) textureX = texture.width - textureX - 1;
+                if (side === 1 && rayDirectionY < 0) textureX = texture.width - textureX - 1;
+            }
 
             // Choose wall color
             let color;
@@ -250,12 +265,11 @@ export default class Raycast2 {
             }
 
             // Give x and y sides different brightness
-            if (side === 1) color -= 0x444444;
+            // if (side === 1) color /= 2;
 
             this._graphics
-                .lineStyle(1, color)
-                .moveTo(x, drawStart)
-                .lineTo(x, drawEnd);
+                .beginFill(color)
+                .drawRect(x, drawStart, 1, lineHeight);
         }
     }
 
@@ -264,9 +278,34 @@ export default class Raycast2 {
         return this._map[index];
     }
 
+    loadTextures(textures) {
+        textures.forEach(texture => {
+            PIXI.loader.add(texture.title, texture.src);
+        });
+
+        PIXI.loader.load(this._texturesloaded);
+    }
+
+    _texturesloaded() {
+        Object.keys(PIXI.loader.resources).forEach((resourceName, index) => {
+            const resource = PIXI.loader.resources[resourceName];
+            const sprite = new PIXI.Sprite(PIXI.loader.resources[resourceName].texture);
+            const customTexture = {
+                name: resource.name,
+                width: resource.texture.width,
+                height: resource.texture.height,
+                data: this._app.renderer.extract.pixels(sprite),
+            };
+
+            this._mapWallTextures[index + 1] = customTexture;
+        });
+    }
+
     update(secondsElapsed) {
         this._graphics.clear();
         this._raycast();
         this._handleControlStateInput(secondsElapsed);
+
+        const fps = Math.floor(1 / secondsElapsed);
     }
 }

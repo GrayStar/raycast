@@ -3,16 +3,25 @@ import { Component } from 'react';
 import Raycast2 from 'app/level/raycast-2';
 
 export default class Scene2 extends Component {
-	constructor(props) {
-		super(props);
+    constructor(props) {
+        super(props);
 
-		this.state = { looping: false };
+        this.state = { looping: false };
 
         this.frame = this.frame.bind(this);
-	}
+    }
 
     componentDidMount() {
-    	this._raycast = new Raycast2(512, 384, this._container);
+        const textures = [{
+            title: 'stone',
+            src: 'https://i.imgur.com/1jkxxi1.png',
+        }, {
+            title: 'stoneWithGrass',
+            src: 'https://i.imgur.com/yeTdmkj.png',
+        }];
+
+        this._raycast = new Raycast2(512, 384, this._container);
+        this._raycast.loadTextures(textures);
     }
 
     start() {
