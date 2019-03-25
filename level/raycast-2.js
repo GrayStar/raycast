@@ -74,7 +74,8 @@ export default class Raycast2 {
         document.addEventListener('keydown', this._handleKeyEvent.bind(this, true), false);
         document.addEventListener('keyup', this._handleKeyEvent.bind(this, false), false);
 
-        console.log(PIXI.utils);
+        this._fpsText = new PIXI.Text('fps: 0', { fill: 'white' });
+        this._stage.addChild(this._fpsText);
     }
 
     _handleKeyEvent(value, event) {
@@ -314,5 +315,6 @@ export default class Raycast2 {
         this._handleControlStateInput(secondsElapsed);
 
         const fps = Math.floor(1 / secondsElapsed);
+        this._fpsText.text = `fps: ${fps}`;
     }
 }
