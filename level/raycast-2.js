@@ -3,6 +3,7 @@ import {
     radianToVx,
     radianToVy,
 } from 'app/utilities/math-utilities';
+import { stringTohex } from 'app/utilities/image-utilities';
 
 if (typeof window !== 'undefined') { require('pixi.js'); }
 
@@ -38,10 +39,10 @@ export default class Raycast2 {
         this._map = [
             1, 1, 1, 1, 1, 1, 1, 1,
             1, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 2,
+            1, 0, 0, 0, 0, 2, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 3,
+            1, 0, 0, 0, 0, 3, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 1,
             1, 1, 1, 1, 1, 1, 1, 1,
         ];
@@ -72,6 +73,8 @@ export default class Raycast2 {
         this._texturesloaded = this._texturesloaded.bind(this);
         document.addEventListener('keydown', this._handleKeyEvent.bind(this, true), false);
         document.addEventListener('keyup', this._handleKeyEvent.bind(this, false), false);
+
+        console.log(PIXI.utils);
     }
 
     _handleKeyEvent(value, event) {
@@ -252,21 +255,25 @@ export default class Raycast2 {
             let color;
             switch(mapIndex) {
                 case 1:
-                    color = 0xff0000;
+                    color = 'ff0000';
                     break;
                 case 2:
-                    color = 0x00ff00;
+                    color = '#00ff00';
                     break;
                 case 3:
-                    color = 0x0000ff;
+                    color = '#0000ff';
                     break;
                 default:
-                    color = 0xffffff;
+                    color = '#ffffff';
             }
 
             // Give x and y sides different brightness
-            // if (side === 1) color /= 2;
+            if (side === 1) color = color.replace('f', '8');
 
+            // Convert string to hex
+            color = stringTohex(color);
+
+            // Draw rect
             this._graphics
                 .beginFill(color)
                 .drawRect(x, drawStart, 1, lineHeight);
