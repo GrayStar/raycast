@@ -11,8 +11,16 @@ export default class Index extends Page {
     constructor(props) {
         super(props);
 
+        this.state = { loaded: false };
+
         this._handleStartButtonClick = this._handleStartButtonClick.bind(this);
         this._handleStopButtonClick = this._handleStopButtonClick.bind(this);
+    }
+
+    componentDidMount() {
+        this.setState({ loaded: true }, () => {
+            this._scene.start();
+        });
     }
 
     _handleStartButtonClick() {
@@ -23,6 +31,11 @@ export default class Index extends Page {
         this._scene.stop();
     }
 
+    get _loadedScene() {
+        if (this.state.loaded) return <Scene ref={ scene => this._scene = scene }/>;
+        return null;
+    }
+
     get _successState() {
         return (
             <Main title='Index Page'>
@@ -30,7 +43,7 @@ export default class Index extends Page {
                     <Container>
                         <Row>
                             <Col sm={12}>
-                                <Scene ref={ scene => this._scene = scene }/>
+                                { this._loadedScene }
                             </Col>
                         </Row>
                         <Row>

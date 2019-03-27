@@ -1,12 +1,7 @@
 import { Component } from 'react';
+import * as THREE from 'three';
 
-import Bitmap from 'app/level/bitmap';
-import Block from 'app/level/block';
-import Floor from 'app/level/floor';
-import Level from 'app/level/level';
-import Raycast from 'app/level/raycast';
-
-import { getImage } from 'app/utilities/image-utilities';
+import Box from 'app/level/box';
 
 export default class Scene extends Component {
     constructor (props) {
@@ -14,80 +9,88 @@ export default class Scene extends Component {
 
         this.state = { looping: false };
 
-        this.frame = this.frame.bind(this);
+        this._frame = this._frame.bind(this);
+        this._handleWindowResize = this._handleWindowResize.bind(this);
+
+        window.addEventListener('resize', this._handleWindowResize, false);
     }
 
-    async componentDidMount() {
-        // load images
-        const [
-            stoneBlockImage,
-            stoneBlockImageWithGrass,
-            grassImage,
-            grassWithFlowerImage,
-        ] = await Promise.all([
-            getImage('https://i.imgur.com/1jkxxi1.png'),
-            getImage('https://i.imgur.com/yeTdmkj.png'),
-            getImage('https://i.imgur.com/zlzCIOE.png'),
-            getImage('https://i.imgur.com/LbwCpCJ.png'),
-        ]);
+    componentDidMount() {
+        this._width = 300;
+        this._height = 200;
 
-        // create texture bitmaps
-        const stoneBlockTexture = new Bitmap(stoneBlockImage, 16, 16);
-        const stoneBlockTextureWithGrass = new Bitmap(stoneBlockImageWithGrass, 16, 16);
-        const grassTexture = new Bitmap(grassImage, 16, 16);
-        const grassWithFlowerTexture = new Bitmap(grassWithFlowerImage, 16, 16);
+        // renderer
+        this._renderer = new THREE.WebGLRenderer({ antialias: true });
+        this._renderer.setPixelRatio(window.devicePixelRatio);
+        this._renderer.setSize(this._width, this._height);
+        this._renderer.shadowMap.enabled = true;
+        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-        // declare block types
-        const wallBlocks = [];
-        wallBlocks[1] = new Block(stoneBlockTexture);
-        wallBlocks[2] = new Block(stoneBlockTextureWithGrass);
+        // camera
+        this._camera = new THREE.PerspectiveCamera(66, this._width / this._height, 1, 1000);
+        this._camera.position.z = 400;
+        this._camera.position.y = 128;
 
-        const floorBlocks = [];
-        floorBlocks[1] = new Floor(grassTexture);
-        floorBlocks[2] = new Floor(grassWithFlowerTexture);
+        // scene
+        this._scene = new THREE.Scene();
 
-        // generate a new level
-        const level = new Level(wallBlocks, floorBlocks);
-        level.setWalls([
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ], 0);
-        level.setWalls([
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ], 1);
+        // ambient lighting (sun)
+        this._light = new THREE.HemisphereLight();
+        this._scene.add(this._light);
 
-        level.setFloors([
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ], 0);
+        // point lighting (for shadow testing)
+        this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 320);
+        this._pointLight.position.set(64, 192, 0);
+        this._pointLight.castShadow = true;
+        this._scene.add(this._pointLight);
+        this._pointLightHelper = new THREE.CameraHelper( this._pointLight.shadow.camera );
+        this._scene.add(this._pointLightHelper);
 
-        // ray cast the level to the canvas
-        this._raycast = new Raycast(this._canvas, level);
+        // ground
+        this._groundGeometry = new THREE.PlaneGeometry(256, 256, 4, 4);
+        this._groundMaterial = new THREE.MeshLambertMaterial({ color: 0xA1DDBD, side: THREE.DoubleSide });
+        this._groundMesh = new THREE.Mesh(this._groundGeometry, this._groundMaterial);
+        this._groundMesh.rotation.x = -(Math.PI / 2);
+        this._groundMesh.receiveShadow = true;
+        this._scene.add(this._groundMesh);
+
+        // cube
+        this._box = new Box();
+        this._box.mesh.position.y = 64;
+        this._scene.add(this._box.mesh);
+
+        // apped THREE's canvas
+        this._container.appendChild(this._renderer.domElement);
+    }
+
+    _handleWindowResize() {
+        this._camera.aspect = this._width / this._height;
+        this._camera.updateProjectionMatrix();
+        this._renderer.setSize(this._width, this._height);
+    }
+
+
+    _frame(time) {
+        if (!this.state.looping) return;
+
+        const secondsElapsed = (time - this._lastTime) / 1000;
+        this._lastTime = time;
+
+        if (secondsElapsed < 0.2) this._update(secondsElapsed);
+        requestAnimationFrame(this._frame);
+    }
+
+    _update(secondsElapsed) {
+        this._box.mesh.rotation.x += 0.01;
+        this._box.mesh.rotation.y += 0.03;
+
+        this._renderer.render(this._scene, this._camera);
     }
 
     start() {
         this.setState({ looping: true }, () => {
             this._lastTime = 0;
-            requestAnimationFrame(this.frame);
+            requestAnimationFrame(this._frame);
         });
     }
 
@@ -95,27 +98,9 @@ export default class Scene extends Component {
         this.setState({ looping: false });
     }
 
-    frame(time) {
-        if (!this.state.looping) return;
-
-        const secondsElapsed = (time - this._lastTime) / 1000;
-        this._lastTime = time;
-
-        if (secondsElapsed < 0.2) this.update(secondsElapsed);
-        requestAnimationFrame(this.frame);
-    }
-
-    update(secondsElapsed) {
-        this._raycast.update(secondsElapsed);
-    }
-
     render() {
         return (
-            <canvas
-                id='canvas'
-                ref={ canvas => this._canvas = canvas }
-                width='512'
-                height='384'/>
+            <div style={{ width: this._width, height: this._height }} ref={ container => this._container = container }></div>
         );
     }
 }
