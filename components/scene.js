@@ -1,22 +1,23 @@
 import { Component } from 'react';
 import * as THREE from 'three';
 
-import Controls from 'app/level/controls';
+import PointerLockBlocker from 'app/components/pointer-lock-blocker';
+
+//import PointerLockControls from 'app/level/pointer-lock-controls';
+import PointerLockControls from 'app/components/pointer-lock-controls';
 import Box from 'app/level/box';
+
+import styles from 'app/scss/components/scene.scss';
 
 export default class Scene extends Component {
     constructor (props) {
         super(props);
 
-        this.state = { looping: false };
+        this.state = {
+            looping: false,
+            isLocked: false,
+        };
 
-        this._frame = this._frame.bind(this);
-        this._handleWindowResize = this._handleWindowResize.bind(this);
-
-        window.addEventListener('resize', this._handleWindowResize, false);
-    }
-
-    componentDidMount() {
         this._width = 800;
         this._height = 525;
 
@@ -30,23 +31,17 @@ export default class Scene extends Component {
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-        // camera and controls
+        // camera
         this._camera = new THREE.PerspectiveCamera(66, this._width / this._height, 1, 1000);
-        this._controls = new Controls(this._camera, this._container);
-        this._velocity = new THREE.Vector3();
-        this._scene.add(this._controls.object);
 
         // ambient lighting (sun)
         this._light = new THREE.HemisphereLight();
-        this._scene.add(this._light);
 
         // point lighting (for shadow testing)
         this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 320);
         this._pointLight.position.set(64, 192, 0);
         this._pointLight.castShadow = true;
-        this._scene.add(this._pointLight);
         this._pointLightHelper = new THREE.CameraHelper( this._pointLight.shadow.camera );
-        this._scene.add(this._pointLightHelper);
 
         // ground
         this._groundGeometry = new THREE.PlaneGeometry(256, 256, 4, 4);
@@ -54,14 +49,33 @@ export default class Scene extends Component {
         this._groundMesh = new THREE.Mesh(this._groundGeometry, this._groundMaterial);
         this._groundMesh.rotation.x = -(Math.PI / 2);
         this._groundMesh.receiveShadow = true;
-        this._scene.add(this._groundMesh);
 
         // box
         this._box = new Box();
         this._box.mesh.position.y = 64;
+
+        this._frame = this._frame.bind(this);
+        this._handlePointerLockBlockerClick = this._handlePointerLockBlockerClick.bind(this);
+        this._handleControlsUnlock = this._handleControlsUnlock.bind(this);
+        this._handleWindowResize = this._handleWindowResize.bind(this);
+
+        window.addEventListener('resize', this._handleWindowResize, false);
+    }
+
+    componentDidMount() {
+        // Add controls
+        this._scene.add(this._controls.object);
+
+        // Add lights
+        this._scene.add(this._light);
+        this._scene.add(this._pointLight);
+        this._scene.add(this._pointLightHelper);
+
+        // Add solids
+        this._scene.add(this._groundMesh);
         this._scene.add(this._box.mesh);
 
-        // append THREE's canvas
+        // Append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
     }
 
@@ -69,6 +83,14 @@ export default class Scene extends Component {
         this._camera.aspect = this._width / this._height;
         this._camera.updateProjectionMatrix();
         this._renderer.setSize(this._width, this._height);
+    }
+
+    _handlePointerLockBlockerClick() {
+        this.setState({ isLocked: true });
+    }
+
+    _handleControlsUnlock() {
+        this.setState({ isLocked: false });
     }
 
     _frame(time) {
@@ -85,10 +107,6 @@ export default class Scene extends Component {
         this._box.mesh.rotation.x += 0.01;
         this._box.mesh.rotation.y += 0.03;
 
-        this._controls.object.translateX(this._velocity.x * secondsElapsed);
-        this._controls.object.translateY(this._velocity.y * secondsElapsed);
-        this._controls.object.translateZ(this._velocity.z * secondsElapsed);
-
         this._renderer.render(this._scene, this._camera);
     }
 
@@ -103,9 +121,25 @@ export default class Scene extends Component {
         this.setState({ looping: false });
     }
 
+    get _pointerLockBlocker() {
+        if (this.state.isLocked) return null;
+        return <PointerLockBlocker onClick={ this._handlePointerLockBlockerClick }/>;
+    }
+
     render() {
         return (
-            <div style={{ width: this._width, height: this._height }} ref={ container => this._container = container }></div>
+            <div
+                className={ styles.scene }
+                style={{ width: this._width, height: this._height }}
+                ref={ container => this._container = container }>
+                <PointerLockControls
+                    ref={ controls => this._controls = controls }
+                    camera={ this._camera }
+                    domElement={ this._container }
+                    isLocked={ this.state.isLocked }
+                    onUnlock={ this._handleControlsUnlock }/>
+                { this._pointerLockBlocker }
+            </div>
         );
     }
 }
