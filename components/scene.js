@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import * as THREE from 'three';
 
+import Controls from 'app/level/controls';
 import Box from 'app/level/box';
 
 export default class Scene extends Component {
@@ -16,8 +17,11 @@ export default class Scene extends Component {
     }
 
     componentDidMount() {
-        this._width = 300;
-        this._height = 200;
+        this._width = 800;
+        this._height = 525;
+
+        // scene
+        this._scene = new THREE.Scene();
 
         // renderer
         this._renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -26,13 +30,11 @@ export default class Scene extends Component {
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-        // camera
+        // camera and controls
         this._camera = new THREE.PerspectiveCamera(66, this._width / this._height, 1, 1000);
-        this._camera.position.z = 400;
-        this._camera.position.y = 128;
-
-        // scene
-        this._scene = new THREE.Scene();
+        this._controls = new Controls(this._camera, this._container);
+        this._velocity = new THREE.Vector3();
+        this._scene.add(this._controls.object);
 
         // ambient lighting (sun)
         this._light = new THREE.HemisphereLight();
@@ -54,12 +56,12 @@ export default class Scene extends Component {
         this._groundMesh.receiveShadow = true;
         this._scene.add(this._groundMesh);
 
-        // cube
+        // box
         this._box = new Box();
         this._box.mesh.position.y = 64;
         this._scene.add(this._box.mesh);
 
-        // apped THREE's canvas
+        // append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
     }
 
@@ -68,7 +70,6 @@ export default class Scene extends Component {
         this._camera.updateProjectionMatrix();
         this._renderer.setSize(this._width, this._height);
     }
-
 
     _frame(time) {
         if (!this.state.looping) return;
@@ -83,6 +84,10 @@ export default class Scene extends Component {
     _update(secondsElapsed) {
         this._box.mesh.rotation.x += 0.01;
         this._box.mesh.rotation.y += 0.03;
+
+        this._controls.object.translateX(this._velocity.x * secondsElapsed);
+        this._controls.object.translateY(this._velocity.y * secondsElapsed);
+        this._controls.object.translateZ(this._velocity.z * secondsElapsed);
 
         this._renderer.render(this._scene, this._camera);
     }
