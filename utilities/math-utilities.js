@@ -1,3 +1,5 @@
+export const PI_2 = Math.PI / 2;
+
 export const degreeToRadian = (degree) => {
 	return degree * (Math.PI / 180);
 }

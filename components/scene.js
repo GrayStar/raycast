@@ -1,93 +1,159 @@
 import { Component } from 'react';
+import * as THREE from 'three';
 
-import Bitmap from 'app/level/bitmap';
-import Block from 'app/level/block';
-import Floor from 'app/level/floor';
-import Level from 'app/level/level';
-import Raycast from 'app/level/raycast';
+import PointerLockBlocker from 'app/components/pointer-lock-blocker';
 
-import { getImage } from 'app/utilities/image-utilities';
+//import PointerLockControls from 'app/level/pointer-lock-controls';
+import PointerLockControls from 'app/components/pointer-lock-controls';
+import Box from 'app/level/box';
+import Plane from 'app/level/plane';
+
+import styles from 'app/scss/components/scene.scss';
+
+const map = [
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+];
+const floorMap = [
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+];
+const mapWidth = 12;
+const mapHeight = 8;
+
 
 export default class Scene extends Component {
     constructor (props) {
         super(props);
 
-        this.state = { looping: false };
+        this.state = {
+            looping: false,
+            isLocked: false,
+        };
 
-        this.frame = this.frame.bind(this);
+        this._width = 800;
+        this._height = 525;
+
+        // scene
+        this._scene = new THREE.Scene();
+        this._scene.background = new THREE.Color(0x3079B5);
+        // this._scene.fog = new THREE.Fog(0x2B633D, 0, 768); // color, null, distance you can see in px
+
+        // renderer
+        this._renderer = new THREE.WebGLRenderer({ antialias: true });
+        this._renderer.setPixelRatio(window.devicePixelRatio);
+        this._renderer.setSize(this._width, this._height);
+        this._renderer.shadowMap.enabled = true;
+        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        // camera
+        this._camera = new THREE.PerspectiveCamera(66, this._width / this._height, 1, 1000);
+
+        // ambient lighting (sun)
+        this._light = new THREE.HemisphereLight();
+
+        // point lighting (for shadow testing)
+        this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 500);
+        this._pointLight.position.set(384, 224, 256);
+        this._pointLight.castShadow = true;
+        this._pointLightHelper = new THREE.CameraHelper( this._pointLight.shadow.camera );
+
+        // ground
+        this._plane = new Plane();
+
+        this._frame = this._frame.bind(this);
+        this._handlePointerLockBlockerClick = this._handlePointerLockBlockerClick.bind(this);
+        this._handleControlsUnlock = this._handleControlsUnlock.bind(this);
+        this._handleWindowResize = this._handleWindowResize.bind(this);
+
+        window.addEventListener('resize', this._handleWindowResize, false);
     }
 
-    async componentDidMount() {
-        // load images
-        const [
-            stoneBlockImage,
-            stoneBlockImageWithGrass,
-            grassImage,
-            grassWithFlowerImage,
-        ] = await Promise.all([
-            getImage('https://i.imgur.com/1jkxxi1.png'),
-            getImage('https://i.imgur.com/yeTdmkj.png'),
-            getImage('https://i.imgur.com/zlzCIOE.png'),
-            getImage('https://i.imgur.com/LbwCpCJ.png'),
-        ]);
+    componentDidMount() {
+        // Add controls
+        this._scene.add(this._controls.object);
 
-        // create texture bitmaps
-        const stoneBlockTexture = new Bitmap(stoneBlockImage, 16, 16);
-        const stoneBlockTextureWithGrass = new Bitmap(stoneBlockImageWithGrass, 16, 16);
-        const grassTexture = new Bitmap(grassImage, 16, 16);
-        const grassWithFlowerTexture = new Bitmap(grassWithFlowerImage, 16, 16);
+        // Add lights
+        this._scene.add(this._light);
+        this._scene.add(this._pointLight);
+        this._scene.add(this._pointLightHelper);
 
-        // declare block types
-        const wallBlocks = [];
-        wallBlocks[1] = new Block(stoneBlockTexture);
-        wallBlocks[2] = new Block(stoneBlockTextureWithGrass);
+        // Add solids
+        // this._scene.add(this._plane.mesh);
+        // this._scene.add(this._box.mesh);
 
-        const floorBlocks = [];
-        floorBlocks[1] = new Floor(grassTexture);
-        floorBlocks[2] = new Floor(grassWithFlowerTexture);
 
-        // generate a new level
-        const level = new Level(wallBlocks, floorBlocks);
-        level.setWalls([
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ], 0);
-        level.setWalls([
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ], 1);
+        for (let y = 0; y < mapHeight; y++) {
+            for(let x = 0; x < mapWidth; x++) {
+                const index = y * mapWidth + x;
+                const mapIndex = map[index];
+                const floorIndex = floorMap[index];
 
-        level.setFloors([
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ], 0);
+                if (mapIndex > 0) {
+                    const box = new Box();
+                    box.mesh.position.x = 64 * x;
+                    box.mesh.position.z = 64 * y;
+                    box.mesh.position.y = 32;
+                    this._scene.add(box.mesh);
+                }
 
-        // ray cast the level to the canvas
-        this._raycast = new Raycast(this._canvas, level);
+                if (floorIndex > 0) {
+                    const plane = new Plane();
+                    plane.mesh.position.x = 64 * x;
+                    plane.mesh.position.z = 64 * y;
+                    this._scene.add(plane.mesh);
+                }
+            }
+        }
+
+        // Append THREE's canvas
+        this._container.appendChild(this._renderer.domElement);
+    }
+
+    _handleWindowResize() {
+        this._camera.aspect = this._width / this._height;
+        this._camera.updateProjectionMatrix();
+        this._renderer.setSize(this._width, this._height);
+    }
+
+    _handlePointerLockBlockerClick() {
+        this.setState({ isLocked: true });
+    }
+
+    _handleControlsUnlock() {
+        this.setState({ isLocked: false });
+    }
+
+    _frame(time) {
+        if (!this.state.looping) return;
+
+        const secondsElapsed = (time - this._lastTime) / 1000;
+        this._lastTime = time;
+
+        if (secondsElapsed < 0.2) this._update(secondsElapsed);
+        requestAnimationFrame(this._frame);
+    }
+
+    _update(secondsElapsed) {
+        this._renderer.render(this._scene, this._camera);
     }
 
     start() {
         this.setState({ looping: true }, () => {
             this._lastTime = 0;
-            requestAnimationFrame(this.frame);
+            requestAnimationFrame(this._frame);
         });
     }
 
@@ -95,27 +161,25 @@ export default class Scene extends Component {
         this.setState({ looping: false });
     }
 
-    frame(time) {
-        if (!this.state.looping) return;
-
-        const secondsElapsed = (time - this._lastTime) / 1000;
-        this._lastTime = time;
-
-        if (secondsElapsed < 0.2) this.update(secondsElapsed);
-        requestAnimationFrame(this.frame);
-    }
-
-    update(secondsElapsed) {
-        this._raycast.update(secondsElapsed);
+    get _pointerLockBlocker() {
+        if (this.state.isLocked) return null;
+        return <PointerLockBlocker onClick={ this._handlePointerLockBlockerClick }/>;
     }
 
     render() {
         return (
-            <canvas
-                id='canvas'
-                ref={ canvas => this._canvas = canvas }
-                width='512'
-                height='384'/>
+            <div
+                className={ styles.scene }
+                style={{ width: this._width, height: this._height }}
+                ref={ container => this._container = container }>
+                <PointerLockControls
+                    ref={ controls => this._controls = controls }
+                    camera={ this._camera }
+                    domElement={ this._container }
+                    isLocked={ this.state.isLocked }
+                    onUnlock={ this._handleControlsUnlock }/>
+                { this._pointerLockBlocker }
+            </div>
         );
     }
 }
