@@ -6,8 +6,33 @@ import PointerLockBlocker from 'app/components/pointer-lock-blocker';
 //import PointerLockControls from 'app/level/pointer-lock-controls';
 import PointerLockControls from 'app/components/pointer-lock-controls';
 import Box from 'app/level/box';
+import Plane from 'app/level/plane';
 
 import styles from 'app/scss/components/scene.scss';
+
+const map = [
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+];
+const floorMap = [
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+];
+const mapWidth = 12;
+const mapHeight = 8;
+
 
 export default class Scene extends Component {
     constructor (props) {
@@ -38,21 +63,13 @@ export default class Scene extends Component {
         this._light = new THREE.HemisphereLight();
 
         // point lighting (for shadow testing)
-        this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 320);
-        this._pointLight.position.set(64, 192, 0);
+        this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 500);
+        this._pointLight.position.set(640, 224, 256);
         this._pointLight.castShadow = true;
         this._pointLightHelper = new THREE.CameraHelper( this._pointLight.shadow.camera );
 
         // ground
-        this._groundGeometry = new THREE.PlaneGeometry(256, 256, 4, 4);
-        this._groundMaterial = new THREE.MeshLambertMaterial({ color: 0xA1DDBD, side: THREE.DoubleSide });
-        this._groundMesh = new THREE.Mesh(this._groundGeometry, this._groundMaterial);
-        this._groundMesh.rotation.x = -(Math.PI / 2);
-        this._groundMesh.receiveShadow = true;
-
-        // box
-        this._box = new Box();
-        this._box.mesh.position.y = 64;
+        this._plane = new Plane();
 
         this._frame = this._frame.bind(this);
         this._handlePointerLockBlockerClick = this._handlePointerLockBlockerClick.bind(this);
@@ -72,8 +89,32 @@ export default class Scene extends Component {
         this._scene.add(this._pointLightHelper);
 
         // Add solids
-        this._scene.add(this._groundMesh);
-        this._scene.add(this._box.mesh);
+        // this._scene.add(this._plane.mesh);
+        // this._scene.add(this._box.mesh);
+
+
+        for (let y = 0; y < mapHeight; y++) {
+            for(let x = 0; x < mapWidth; x++) {
+                const index = y * mapWidth + x;
+                const mapIndex = map[index];
+                const floorIndex = floorMap[index];
+
+                if (mapIndex > 0) {
+                    const box = new Box();
+                    box.mesh.position.x = 64 * x;
+                    box.mesh.position.z = 64 * y;
+                    box.mesh.position.y = 32;
+                    this._scene.add(box.mesh);
+                }
+
+                if (floorIndex > 0) {
+                    const plane = new Plane();
+                    plane.mesh.position.x = 64 * x;
+                    plane.mesh.position.z = 64 * y;
+                    this._scene.add(plane.mesh);
+                }
+            }
+        }
 
         // Append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
@@ -104,9 +145,6 @@ export default class Scene extends Component {
     }
 
     _update(secondsElapsed) {
-        this._box.mesh.rotation.x += 0.01;
-        this._box.mesh.rotation.y += 0.03;
-
         this._renderer.render(this._scene, this._camera);
     }
 

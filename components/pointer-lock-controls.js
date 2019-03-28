@@ -1,11 +1,13 @@
 import { Component } from 'react';
 import * as THREE from 'three';
 
-const PI_2 = Math.PI / 2;
+import { PI_2 } from 'app/utilities/math-utilities';
 
 export default class PointerLockControls extends Component {
 	constructor(props) {
 		super(props);
+
+		console.log(this.props);
 
 		this._domElement = this.props.domElement || document.body;
 
@@ -13,7 +15,7 @@ export default class PointerLockControls extends Component {
 		this._pitchObject.add(this.props.camera);
 
 		this._yawObject = new THREE.Object3D();
-		this._yawObject.position.y = 10;
+		this._yawObject.position.y = 128;
 		this._yawObject.add(this._pitchObject);
 
 		this._handleMouseMove = this._handleMouseMove.bind(this);
@@ -23,6 +25,7 @@ export default class PointerLockControls extends Component {
 
 	componentDidMount() {
 		this.props.camera.rotation.set(0, 0, 0);
+		this._yawObject.rotation.y = -PI_2;
 
 		document.addEventListener('mousemove', this._handleMouseMove, false);
 		document.addEventListener('pointerlockchange', this._handlePointerLockChange, false);
