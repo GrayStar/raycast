@@ -14,8 +14,8 @@ const map = [
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -48,6 +48,8 @@ export default class Scene extends Component {
 
         // scene
         this._scene = new THREE.Scene();
+        this._scene.background = new THREE.Color(0x3079B5);
+        // this._scene.fog = new THREE.Fog(0x2B633D, 0, 768); // color, null, distance you can see in px
 
         // renderer
         this._renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -64,7 +66,7 @@ export default class Scene extends Component {
 
         // point lighting (for shadow testing)
         this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 500);
-        this._pointLight.position.set(640, 224, 256);
+        this._pointLight.position.set(384, 224, 256);
         this._pointLight.castShadow = true;
         this._pointLightHelper = new THREE.CameraHelper( this._pointLight.shadow.camera );
 
