@@ -5,6 +5,9 @@
 	bottom: 0;
 	z-index: 1;
 	color: white;
+	display: flex;
 	position: absolute;
-	background-color: rgba(0, 0, 0, 0.5);
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, 0.64);
 }

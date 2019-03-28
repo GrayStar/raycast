@@ -49,7 +49,7 @@ export default class Scene extends Component {
         // scene
         this._scene = new THREE.Scene();
         this._scene.background = new THREE.Color(0x3079B5);
-        // this._scene.fog = new THREE.Fog(0x2B633D, 0, 768); // color, null, distance you can see in px
+        // this._scene.fog = new THREE.Fog(0xFFFFFF, 0, 768); // color, null, distance you can see in px
 
         // renderer
         this._renderer = new THREE.WebGLRenderer({ antialias: true });

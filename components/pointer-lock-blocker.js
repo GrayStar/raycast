@@ -17,13 +17,7 @@ export default class PointerLockBlocker extends Component {
     render() {
         return (
             <div className={ styles['pointer-lock-blocker'] } onClick={ this._handleClick }>
-                <Container fluid>
-                    <Row>
-                        <Col xs={12}>
-                            <h1>Click to lock pointer</h1>
-                        </Col>
-                    </Row>
-                </Container>
+                <h1>Click to lock pointer</h1>
             </div>
         );
     }
