@@ -7,6 +7,7 @@ import PointerLockBlocker from 'app/components/pointer-lock-blocker';
 import PointerLockControls from 'app/components/pointer-lock-controls';
 import Box from 'app/level/box';
 import Plane from 'app/level/plane';
+import Sprite from 'app/level/sprite';
 
 import styles from 'app/scss/components/scene.scss';
 
@@ -52,11 +53,10 @@ export default class Scene extends Component {
         // this._scene.fog = new THREE.Fog(0xFFFFFF, 0, 768); // color, null, distance you can see in px
 
         // renderer
-        this._renderer = new THREE.WebGLRenderer({ antialias: true });
+        this._renderer = new THREE.WebGLRenderer({ antialias: false });
         this._renderer.setPixelRatio(window.devicePixelRatio);
         this._renderer.setSize(this._width, this._height);
         this._renderer.shadowMap.enabled = true;
-        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         // camera
         this._camera = new THREE.PerspectiveCamera(66, this._width / this._height, 1, 1000);
@@ -90,11 +90,6 @@ export default class Scene extends Component {
         this._scene.add(this._pointLight);
         this._scene.add(this._pointLightHelper);
 
-        // Add solids
-        // this._scene.add(this._plane.mesh);
-        // this._scene.add(this._box.mesh);
-
-
         for (let y = 0; y < mapHeight; y++) {
             for(let x = 0; x < mapWidth; x++) {
                 const index = y * mapWidth + x;
@@ -117,6 +112,24 @@ export default class Scene extends Component {
                 }
             }
         }
+
+        // sprite for testing
+        var sprite = new Sprite('https://i.imgur.com/NPO6nJU.png');
+        sprite.mesh.position.x = 256;
+        sprite.mesh.position.y = 32;
+        sprite.mesh.position.z = 128;
+
+        this._scene.add(sprite.mesh);
+
+        sprite.mesh.customDepthMaterial = new THREE.MeshDepthMaterial({
+            depthPacking: THREE.RGBADepthPacking,
+            map: sprite.texture,
+            alphaTest: 0.5,
+        });
+
+        console.log(sprite);
+
+        sprite.mesh.lookAt(this._camera.position);
 
         // Append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
