@@ -7,15 +7,15 @@ export default class PointerLockControls extends Component {
 	constructor(props) {
 		super(props);
 
-		console.log(this.props);
-
 		this._domElement = this.props.domElement || document.body;
 
 		this._pitchObject = new THREE.Object3D();
 		this._pitchObject.add(this.props.camera);
 
 		this._yawObject = new THREE.Object3D();
-		this._yawObject.position.y = 128;
+		this._yawObject.position.y = 32; // temp
+		this._yawObject.position.z = 64; // temp
+		this._yawObject.position.x = 64; // temp
 		this._yawObject.add(this._pitchObject);
 
 		this._handleMouseMove = this._handleMouseMove.bind(this);

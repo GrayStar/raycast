@@ -57,6 +57,7 @@ export default class Scene extends Component {
         this._renderer.setPixelRatio(window.devicePixelRatio);
         this._renderer.setSize(this._width, this._height);
         this._renderer.shadowMap.enabled = true;
+        this._renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
         // camera
         this._camera = new THREE.PerspectiveCamera(66, this._width / this._height, 1, 1000);
@@ -118,18 +119,11 @@ export default class Scene extends Component {
         sprite.mesh.position.x = 256;
         sprite.mesh.position.y = 32;
         sprite.mesh.position.z = 128;
+        sprite.mesh.lookAt(this._camera.position);
 
         this._scene.add(sprite.mesh);
 
-        sprite.mesh.customDepthMaterial = new THREE.MeshDepthMaterial({
-            depthPacking: THREE.RGBADepthPacking,
-            map: sprite.texture,
-            alphaTest: 0.5,
-        });
-
         console.log(sprite);
-
-        sprite.mesh.lookAt(this._camera.position);
 
         // Append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
