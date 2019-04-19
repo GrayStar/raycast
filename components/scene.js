@@ -34,7 +34,6 @@ const floorMap = [
 const mapWidth = 12;
 const mapHeight = 8;
 
-
 export default class Scene extends Component {
     constructor (props) {
         super(props);
@@ -47,17 +46,19 @@ export default class Scene extends Component {
         this._width = 800;
         this._height = 525;
 
+        this._sprites = [];
+
         // scene
         this._scene = new THREE.Scene();
         this._scene.background = new THREE.Color(0x3079B5);
         // this._scene.fog = new THREE.Fog(0xFFFFFF, 0, 768); // color, null, distance you can see in px
 
         // renderer
-        this._renderer = new THREE.WebGLRenderer({ antialias: false });
+        this._renderer = new THREE.WebGLRenderer({ antialias: true });
         this._renderer.setPixelRatio(window.devicePixelRatio);
         this._renderer.setSize(this._width, this._height);
         this._renderer.shadowMap.enabled = true;
-        this._renderer.shadowMapType = THREE.PCFSoftShadowMap;
+        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         // camera
         this._camera = new THREE.PerspectiveCamera(66, this._width / this._height, 1, 1000);
@@ -69,7 +70,7 @@ export default class Scene extends Component {
         this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 500);
         this._pointLight.position.set(384, 224, 256);
         this._pointLight.castShadow = true;
-        this._pointLightHelper = new THREE.CameraHelper( this._pointLight.shadow.camera );
+        this._pointLightHelper = new THREE.CameraHelper(this._pointLight.shadow.camera);
 
         // ground
         this._plane = new Plane();
@@ -91,6 +92,7 @@ export default class Scene extends Component {
         this._scene.add(this._pointLight);
         this._scene.add(this._pointLightHelper);
 
+        // draw map
         for (let y = 0; y < mapHeight; y++) {
             for(let x = 0; x < mapWidth; x++) {
                 const index = y * mapWidth + x;
@@ -114,14 +116,20 @@ export default class Scene extends Component {
             }
         }
 
-        // sprite for testing
+        // sprites for testing
         var sprite = new Sprite('https://i.imgur.com/NPO6nJU.png');
         sprite.mesh.position.x = 256;
         sprite.mesh.position.y = 32;
-        sprite.mesh.position.z = 128;
-        sprite.mesh.lookAt(this._camera.position);
-
+        sprite.mesh.position.z = 133;
         this._scene.add(sprite.mesh);
+        var sprite2 = new Sprite('https://i.imgur.com/NPO6nJU.png');
+        sprite2.mesh.position.x = 96;
+        sprite2.mesh.position.y = 32;
+        sprite2.mesh.position.z = 196;
+        this._scene.add(sprite2.mesh);
+
+        this._sprites.push(sprite);
+        this._sprites.push(sprite2);
 
         // Append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
@@ -153,6 +161,11 @@ export default class Scene extends Component {
 
     _update(secondsElapsed) {
         this._renderer.render(this._scene, this._camera);
+
+        this._sprites.forEach(sprite => {
+            // the object should always exist, probably refactor this out
+            if (this._controls) sprite.render(this._controls.object);
+        });
     }
 
     start() {

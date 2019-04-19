@@ -35,4 +35,9 @@ export default class Sprite {
     get mesh() {
         return this._spriteMesh;
     }
+
+    render(camera) {
+        // always face the camera
+        this._spriteMesh.rotation.y = Math.atan2((camera.position.x - this._spriteMesh.position.x), (camera.position.z - this._spriteMesh.position.z));
+    }
 }
