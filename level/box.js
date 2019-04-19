@@ -26,8 +26,9 @@ export default class Box {
         // Apply materials to each face of the geometry to create mesh
         this._cubeMesh = new THREE.Mesh(this._cubeGeometry, this._cubeMaterials);
 
-        // Allow mesh to cast shadows
+        // Allow mesh to cast/recieve shadows
         this._cubeMesh.castShadow = true;
+        this._cubeMesh.receiveShadow = true;
     }
 
     get mesh() {

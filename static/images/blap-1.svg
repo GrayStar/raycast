@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
+    <title>blap-1</title>
+    <desc>Created with Sketch.</desc>
+    <g id="blap-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M16,28.005286 C16,19.1658106 23.1615011,12 32,12 L32,12 C40.836556,12 48,19.1698343 48,28.005286 L48,50 L16,50 L16,28.005286 Z" id="Rectangle" fill="#C1E6FF"></path>
+        <path d="M26,36.4133494 L26,37.9906311 C26,38.5480902 25.5561352,39 25,39 C24.4477153,39 24,38.5566468 24,37.9906311 L24,35 C24,33.3431458 25.3366311,32 27.0094776,32 L36.9905224,32 C38.652611,32 40,33.3465171 40,35 L40,37.9906311 C40,38.5480902 39.5561352,39 39,39 C38.4477153,39 38,38.5566468 38,37.9906311 L38,36.4142822 L38,34.5 L26,34.5 L26,36.4133494 L26,36.4133494 Z" id="Combined-Shape" fill="#DBF1FF"></path>
+        <g id="Group" transform="translate(16.000000, 48.000000)" fill="#C1E6FF">
+            <circle id="Oval-2" cx="2" cy="2" r="2"></circle>
+            <circle id="Oval-2-Copy" cx="6" cy="2" r="2"></circle>
+            <circle id="Oval-2-Copy-2" cx="10" cy="2" r="2"></circle>
+            <circle id="Oval-2-Copy-3" cx="14" cy="2" r="2"></circle>
+            <circle id="Oval-2-Copy-4" cx="18" cy="2" r="2"></circle>
+            <circle id="Oval-2-Copy-5" cx="22" cy="2" r="2"></circle>
+            <circle id="Oval-2-Copy-6" cx="26" cy="2" r="2"></circle>
+            <circle id="Oval-2-Copy-7" cx="30" cy="2" r="2"></circle>
+        </g>
+        <rect id="mouth" stroke="#FFF2C1" fill="#EAC265" x="26.5" y="33.5" width="11" height="2" rx="1"></rect>
+        <g id="eyes" transform="translate(20.000000, 31.000000)" fill="#000000">
+            <circle id="Oval" cx="1.5" cy="1.5" r="1.5"></circle>
+            <circle id="Oval-Copy" cx="22.5" cy="1.5" r="1.5"></circle>
+        </g>
+        <g id="gills-right" transform="translate(40.000000, 43.000000)" stroke="#AED4EE" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M0,4.04299257 C1.59749816,4.70937873 3.41182792,4.69504788 5,4" id="Oval-29-Copy-4"></path>
+            <path d="M0,2.04299257 C1.59749816,2.70937873 3.41182792,2.69504788 5,2" id="Oval-29-Copy-5"></path>
+            <path d="M0,0.0429925722 C1.59749816,0.709378733 3.41182792,0.695047876 5,-2.21752836e-16" id="Oval-29-Copy-6"></path>
+        </g>
+        <g id="gills-left" transform="translate(19.000000, 43.000000)" stroke="#AED4EE" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M0,4.04299257 C1.59749816,4.70937873 3.41182792,4.69504788 5,4" id="Oval-29-Copy-4"></path>
+            <path d="M0,2.04299257 C1.59749816,2.70937873 3.41182792,2.69504788 5,2" id="Oval-29-Copy-5"></path>
+            <path d="M0,0.0429925722 C1.59749816,0.709378733 3.41182792,0.695047876 5,-2.21752836e-16" id="Oval-29-Copy-6"></path>
+        </g>
+        <path d="M52,32.125 L52,35.875 L48,38 C48.6311826,37.6646843 49.1428571,36.6333402 49.1428571,35.6964286 C49.1428571,34.7595169 48.6311826,34 48,34 C48.6311826,34 49.1428571,33.2404831 49.1428571,32.3035714 C49.1428571,31.3666598 48.6311826,30.3353157 48,30 L52,32.125 Z" id="right-fin" fill="#FFF2C1" transform="translate(50.000000, 34.000000) scale(-1, 1) translate(-50.000000, -34.000000) "></path>
+        <path d="M16,32.125 L16,35.875 L12,38 C12.6311826,37.6646843 13.1428571,36.6333402 13.1428571,35.6964286 C13.1428571,34.7595169 12.6311826,34 12,34 C12.6311826,34 13.1428571,33.2404831 13.1428571,32.3035714 C13.1428571,31.3666598 12.6311826,30.3353157 12,30 L16,32.125 Z" id="left-fin" fill="#FFF2C1"></path>
+        <rect id="top-fin" fill="#FFF2C1" x="31" y="8" width="2" height="20" rx="1"></rect>
+    </g>
+</svg>

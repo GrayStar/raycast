@@ -123,8 +123,6 @@ export default class Scene extends Component {
 
         this._scene.add(sprite.mesh);
 
-        console.log(sprite);
-
         // Append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
     }
