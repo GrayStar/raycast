@@ -5,7 +5,7 @@ import { PI_2 } from 'app/utilities/math-utilities';
 export default class Plane {
     constructor() {
         // Create geometry
-        this._planeGeometry = new THREE.PlaneGeometry(64, 64, 1, 1);
+        this._planeGeometry = new THREE.PlaneGeometry(16, 16, 1, 1);
 
         // Make material double sided
         this._planeMaterial = new THREE.MeshLambertMaterial({ color: 0xA1DDBD, side: THREE.DoubleSide });

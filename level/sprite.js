@@ -16,7 +16,7 @@ export default class Sprite {
         });
 
         // Create geometry
-        this._spriteGeometry = new THREE.PlaneBufferGeometry(64, 64);
+        this._spriteGeometry = new THREE.PlaneBufferGeometry(16, 16);
 
         // Apply material to geometry
         this._spriteMesh = new THREE.Mesh(this._spriteGeometry, this._spriteMaterial);
@@ -25,8 +25,15 @@ export default class Sprite {
         this._spriteMesh.castShadow = true;
         this._spriteMesh.receiveShadow = true;
 
-        // Allow shadow to reflect alphaTest of the texture
+        // Allow shadow to reflect alphaTest of the texture for spot/point lights
         this._spriteMesh.customDistanceMaterial = new THREE.MeshDistanceMaterial({
+            map: this._spriteTexture,
+            alphaTest: 0.5,
+        });
+
+        // Allow shadow to reflect alphaTest of the texture for directional lights
+        this._spriteMesh.customDepthMaterial = new THREE.MeshDepthMaterial({
+            depthPacking: THREE.RGBADepthPacking,
             map: this._spriteTexture,
             alphaTest: 0.5,
         });

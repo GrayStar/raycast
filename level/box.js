@@ -11,7 +11,7 @@ export default class Box {
         this._sideTexture.magFilter = THREE.NearestFilter;
 
         // Create geometry
-        this._cubeGeometry = new THREE.BoxBufferGeometry(64, 64, 64);
+        this._cubeGeometry = new THREE.BoxBufferGeometry(16, 16, 16);
 
         // Create materials
         this._cubeMaterials = [

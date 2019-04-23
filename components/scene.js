@@ -12,40 +12,50 @@ import styles from 'app/scss/components/scene.scss';
 
 const level = new Level();
 level.setWalls([
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ], -1);
 level.setWalls([
-    [0, 0, 0, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 1],
-    [0, 0, 1, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 0);
 level.setWalls([
-    [0, 0, 0, 0, 0, 0, 0, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 1);
+level.setWalls([
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+], 2);
 
 const MAP_ELEVATIONS = level.walls.length;
 const MAP_WIDTH = level.width;
 const MAP_HEIGHT = level.height;
-const TILE_SIZE = 64;
+const TILE_SIZE = 16;
 
 export default class Scene extends Component {
     constructor (props) {
@@ -69,7 +79,7 @@ export default class Scene extends Component {
         // camera
         this._fov = 66;
         this._minRenderDistance = 1;
-        this._maxRenderDistance = 1000;
+        this._maxRenderDistance = 256;
         this._camera = new THREE.PerspectiveCamera(this._fov, this._width / this._height, this._minRenderDistance, this._maxRenderDistance);
 
         // scene
@@ -78,40 +88,46 @@ export default class Scene extends Component {
         this._scene.background = new THREE.Color(this._skyColor);
         this._scene.fog = new THREE.Fog(this._skyColor, 0, this._maxRenderDistance);
 
-        // ambient lighting (sun)
+        // ambient lighting (global illumination)
         this._ambientLight = new THREE.AmbientLight(0xffffff);
 
-        // point lighting (for shadow testing)
-        this._pointLight = new THREE.PointLight(0xffffff, 1, 500);
-        this._pointLight.position.set(384, 224, 224);
-        this._pointLight.castShadow = true;
-        this._pointLightHelper = new THREE.CameraHelper(this._pointLight.shadow.camera);
-
-        this._directionalLight = new THREE.DirectionalLight(0xff0000, 1);
-        this._directionalLight.position.set((MAP_WIDTH / 2) * TILE_SIZE, 256, (MAP_HEIGHT / 2) * TILE_SIZE);
+        // directional lighting (outdoor environments, "the sun")
+        this._directionalLight = new THREE.DirectionalLight(0xffffff, 0.32);
+        this._directionalLight.position.set(
+            ((MAP_WIDTH / 2) * TILE_SIZE) - (TILE_SIZE / 2),
+            64,
+            ((MAP_HEIGHT / 2) * TILE_SIZE) - (TILE_SIZE / 2),
+        );
+        this._directionalLight.target.position.set(
+            ((MAP_WIDTH / 2) * TILE_SIZE) - (TILE_SIZE / 2),
+            0,
+            ((MAP_HEIGHT / 2) * TILE_SIZE) - (TILE_SIZE / 2),
+        );
         this._directionalLight.castShadow = true;
+        this._directionalLight.shadowCameraFar = 256;
+        this._directionalLight.shadowCameraLeft = -MAP_WIDTH/2 * TILE_SIZE;
+        this._directionalLight.shadowCameraRight = MAP_WIDTH/2 * TILE_SIZE;
+        this._directionalLight.shadowCameraTop = MAP_HEIGHT/2 * TILE_SIZE;
+        this._directionalLight.shadowCameraBottom = -MAP_HEIGHT/2 * TILE_SIZE;
         this._directionalLightHelper = new THREE.CameraHelper(this._directionalLight.shadow.camera);
-
-        // ground
-        this._plane = new Plane();
 
         // player
         this._playerVelocity = new THREE.Vector3();
         this._playerDirection = new THREE.Vector3();
         this._playerFriction = 9.8;
-        this._playerSpeed = 3000;
+        this._playerSpeed = 750;
         this._playerMass = 100;
 
         // sprites
         const sprite = new Sprite('https://i.imgur.com/NPO6nJU.png');
-        sprite.mesh.position.x = 256;
-        sprite.mesh.position.y = 32;
-        sprite.mesh.position.z = 133;
+        sprite.mesh.position.x = TILE_SIZE * 4;
+        sprite.mesh.position.y = TILE_SIZE / 2;
+        sprite.mesh.position.z = TILE_SIZE * 1;
 
         const sprite2 = new Sprite('https://i.imgur.com/NPO6nJU.png');
-        sprite2.mesh.position.x = 96;
-        sprite2.mesh.position.y = 32;
-        sprite2.mesh.position.z = 196;
+        sprite2.mesh.position.x = TILE_SIZE * 4;
+        sprite2.mesh.position.y = TILE_SIZE / 2;
+        sprite2.mesh.position.z = TILE_SIZE * 6;
 
         this._sprites = [];
         this._sprites.push(sprite);
@@ -166,9 +182,8 @@ export default class Scene extends Component {
 
         // Add lights
         this._scene.add(this._ambientLight);
-        //this._scene.add(this._pointLight);
-        //this._scene.add(this._pointLightHelper);
         this._scene.add(this._directionalLight);
+        this._scene.add(this._directionalLight.target);
         this._scene.add(this._directionalLightHelper);
 
         // Append THREE's canvas
@@ -182,6 +197,20 @@ export default class Scene extends Component {
 
         if (event.preventDefault) event.preventDefault();
         if (event.stopPropagation) event.stopPropagation();
+    }
+
+    _handleWindowResize() {
+        this._camera.aspect = this._width / this._height;
+        this._camera.updateProjectionMatrix();
+        this._renderer.setSize(this._width, this._height);
+    }
+
+    _handlePointerLockBlockerClick() {
+        this.setState({ isLocked: true });
+    }
+
+    _handleControlsUnlock() {
+        this.setState({ isLocked: false });
     }
 
     _moveControlsObject(seconds) {
@@ -205,20 +234,6 @@ export default class Scene extends Component {
         this._controls.object.translateX(this._playerVelocity.x * seconds);
         this._controls.object.translateY(this._playerVelocity.y * seconds);
         this._controls.object.translateZ(this._playerVelocity.z * seconds);
-    }
-
-    _handleWindowResize() {
-        this._camera.aspect = this._width / this._height;
-        this._camera.updateProjectionMatrix();
-        this._renderer.setSize(this._width, this._height);
-    }
-
-    _handlePointerLockBlockerClick() {
-        this.setState({ isLocked: true });
-    }
-
-    _handleControlsUnlock() {
-        this.setState({ isLocked: false });
     }
 
     _frame(time) {
