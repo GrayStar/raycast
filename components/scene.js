@@ -2,37 +2,50 @@ import { Component } from 'react';
 import * as THREE from 'three';
 
 import PointerLockBlocker from 'app/components/pointer-lock-blocker';
-
-//import PointerLockControls from 'app/level/pointer-lock-controls';
 import PointerLockControls from 'app/components/pointer-lock-controls';
+import Level from 'app/level/level';
 import Box from 'app/level/box';
 import Plane from 'app/level/plane';
 import Sprite from 'app/level/sprite';
 
 import styles from 'app/scss/components/scene.scss';
 
-const map = [
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-];
-const floorMap = [
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-];
-const mapWidth = 12;
-const mapHeight = 8;
+const level = new Level();
+level.setWalls([
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+], -1);
+level.setWalls([
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+], 0);
+level.setWalls([
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+], 1);
+
+const MAP_ELEVATIONS = level.walls.length;
+const MAP_WIDTH = level.width;
+const MAP_HEIGHT = level.height;
+const TILE_SIZE = 64;
 
 export default class Scene extends Component {
     constructor (props) {
@@ -82,6 +95,7 @@ export default class Scene extends Component {
         this._playerDirection = new THREE.Vector3();
         this._playerFriction = 9.8;
         this._playerSpeed = 3000;
+        this._playerMass = 100;
 
         // sprites
         const sprite = new Sprite('https://i.imgur.com/NPO6nJU.png');
@@ -126,26 +140,18 @@ export default class Scene extends Component {
         // Add controls
         this._scene.add(this._controls.object);
 
-        // add map
-        for (let y = 0; y < mapHeight; y++) {
-            for(let x = 0; x < mapWidth; x++) {
-                const index = y * mapWidth + x;
-                const mapIndex = map[index];
-                const floorIndex = floorMap[index];
+        // add map (-1 for floow layer)
+        for (let y = -1; y < MAP_ELEVATIONS; y++) {
+            for (let z = 0; z < MAP_HEIGHT; z++) {
+                for(let x = 0; x < MAP_WIDTH; x++) {
+                    const mapIndex = level.getWallTileByXY(x, z, y);
 
-                if (mapIndex > 0) {
+                    if (mapIndex === 0) continue;
                     const box = new Box();
-                    box.mesh.position.x = 64 * x;
-                    box.mesh.position.z = 64 * y;
-                    box.mesh.position.y = 32;
+                    box.mesh.position.x = TILE_SIZE * x;
+                    box.mesh.position.z = TILE_SIZE * z;
+                    box.mesh.position.y = (TILE_SIZE * y) + (TILE_SIZE / 2);
                     this._scene.add(box.mesh);
-                }
-
-                if (floorIndex > 0) {
-                    const plane = new Plane();
-                    plane.mesh.position.x = 64 * x;
-                    plane.mesh.position.z = 64 * y;
-                    this._scene.add(plane.mesh);
                 }
             }
         }
@@ -174,7 +180,7 @@ export default class Scene extends Component {
     _moveControlsObject(seconds) {
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
-        // this._playerVelocity.y -= 9.8 * 100 * seconds; // 100 = mass
+        // this._playerVelocity.y -= 9.8 * this._playerMass * seconds;
 
         this._playerDirection.z = Number(this._controlStates.forward) - Number(this._controlStates.backward);
         this._playerDirection.x = Number(this._controlStates.left) - Number(this._controlStates.right);
