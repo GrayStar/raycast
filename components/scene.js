@@ -22,9 +22,9 @@ level.setWalls([
     [1, 1, 1, 1, 1, 1, 1, 1],
 ], -1);
 level.setWalls([
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 1],
+    [0, 0, 0, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 1, 0, 0, 1, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 1, 0, 1],
@@ -32,7 +32,7 @@ level.setWalls([
     [1, 1, 1, 1, 1, 1, 1, 1],
 ], 0);
 level.setWalls([
-    [1, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 0, 0, 0, 1, 0, 0],
@@ -79,13 +79,18 @@ export default class Scene extends Component {
         this._scene.fog = new THREE.Fog(this._skyColor, 0, this._maxRenderDistance);
 
         // ambient lighting (sun)
-        this._light = new THREE.HemisphereLight();
+        this._ambientLight = new THREE.AmbientLight(0xffffff);
 
         // point lighting (for shadow testing)
-        this._pointLight = new THREE.PointLight(0xFFFFFF, 1, 500);
+        this._pointLight = new THREE.PointLight(0xffffff, 1, 500);
         this._pointLight.position.set(384, 224, 224);
         this._pointLight.castShadow = true;
         this._pointLightHelper = new THREE.CameraHelper(this._pointLight.shadow.camera);
+
+        this._directionalLight = new THREE.DirectionalLight(0xff0000, 1);
+        this._directionalLight.position.set((MAP_WIDTH / 2) * TILE_SIZE, 256, (MAP_HEIGHT / 2) * TILE_SIZE);
+        this._directionalLight.castShadow = true;
+        this._directionalLightHelper = new THREE.CameraHelper(this._directionalLight.shadow.camera);
 
         // ground
         this._plane = new Plane();
@@ -160,9 +165,11 @@ export default class Scene extends Component {
         this._sprites.forEach(sprite => this._scene.add(sprite.mesh));
 
         // Add lights
-        this._scene.add(this._light);
-        this._scene.add(this._pointLight);
-        this._scene.add(this._pointLightHelper);
+        this._scene.add(this._ambientLight);
+        //this._scene.add(this._pointLight);
+        //this._scene.add(this._pointLightHelper);
+        this._scene.add(this._directionalLight);
+        this._scene.add(this._directionalLightHelper);
 
         // Append THREE's canvas
         this._container.appendChild(this._renderer.domElement);
