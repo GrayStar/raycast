@@ -80,6 +80,27 @@ export default class Scene extends Component {
         this._handleControlsUnlock = this._handleControlsUnlock.bind(this);
         this._handleWindowResize = this._handleWindowResize.bind(this);
 
+        this._playerVelocity = new THREE.Vector3();
+        this._playerDirection = new THREE.Vector3();
+        this._playerFriction = 9.8;
+        this._playerSpeed = 3000
+
+        // controls
+        this._codes = {
+            65: 'left',
+            68: 'right',
+            87: 'forward',
+            83: 'backward',
+        };
+        this._controlStates = {
+            'left': false,
+            'right': false,
+            'forward': false,
+            'backward': false,
+        };
+        document.addEventListener('keydown', this._handleOnKey.bind(this, true), false);
+        document.addEventListener('keyup', this._handleOnKey.bind(this, false), false);
+
         window.addEventListener('resize', this._handleWindowResize, false);
     }
 
@@ -135,6 +156,37 @@ export default class Scene extends Component {
         this._container.appendChild(this._renderer.domElement);
     }
 
+    _handleOnKey(value, event) {
+        const state = this._codes[event.keyCode];
+        if (typeof state === 'undefined') return;
+        this._controlStates[state] = value;
+
+        if (event.preventDefault) event.preventDefault();
+        if (event.stopPropagation) event.stopPropagation();
+    }
+
+    _moveControlObject(seconds) {
+        this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
+        this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
+        // this._playerVelocity.y -= 9.8 * 100 * seconds; // 100 = mass
+
+        this._playerDirection.z = Number(this._controlStates.forward) - Number(this._controlStates.backward);
+        this._playerDirection.x = Number(this._controlStates.left) - Number(this._controlStates.right);
+        this._playerDirection.normalize(); // This ensures consistent movements in all directions
+
+        if (this._controlStates.forward || this._controlStates.backward) {
+            this._playerVelocity.z -= this._playerDirection.z * this._playerSpeed * seconds;
+        }
+
+        if (this._controlStates.left || this._controlStates.right) {
+            this._playerVelocity.x -= this._playerDirection.x * this._playerSpeed * seconds;
+        }
+
+        this._controls.object.translateX(this._playerVelocity.x * seconds);
+        this._controls.object.translateY(this._playerVelocity.y * seconds);
+        this._controls.object.translateZ(this._playerVelocity.z * seconds);
+    }
+
     _handleWindowResize() {
         this._camera.aspect = this._width / this._height;
         this._camera.updateProjectionMatrix();
@@ -160,10 +212,11 @@ export default class Scene extends Component {
     }
 
     _update(secondsElapsed) {
+        this._moveControlObject(secondsElapsed);
         this._renderer.render(this._scene, this._camera);
 
         this._sprites.forEach(sprite => {
-            // the object should always exist, probably refactor this out
+            // the _controls object should always exist, probably shout refactor this out
             if (this._controls) sprite.render(this._controls.object);
         });
     }
