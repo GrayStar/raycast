@@ -104,11 +104,11 @@ export default class Scene extends Component {
             ((MAP_HEIGHT / 2) * TILE_SIZE) - (TILE_SIZE / 2),
         );
         this._directionalLight.castShadow = true;
-        this._directionalLight.shadowCameraFar = 256;
-        this._directionalLight.shadowCameraLeft = -MAP_WIDTH/2 * TILE_SIZE;
-        this._directionalLight.shadowCameraRight = MAP_WIDTH/2 * TILE_SIZE;
-        this._directionalLight.shadowCameraTop = MAP_HEIGHT/2 * TILE_SIZE;
-        this._directionalLight.shadowCameraBottom = -MAP_HEIGHT/2 * TILE_SIZE;
+        this._directionalLight.shadow.camera.far = 256;
+        this._directionalLight.shadow.camera.left = -MAP_WIDTH/2 * TILE_SIZE;
+        this._directionalLight.shadow.camera.right = MAP_WIDTH/2 * TILE_SIZE;
+        this._directionalLight.shadow.camera.top = MAP_HEIGHT/2 * TILE_SIZE;
+        this._directionalLight.shadow.camera.bottom = -MAP_HEIGHT/2 * TILE_SIZE;
         this._directionalLightHelper = new THREE.CameraHelper(this._directionalLight.shadow.camera);
 
         // player
@@ -116,7 +116,10 @@ export default class Scene extends Component {
         this._playerDirection = new THREE.Vector3();
         this._playerFriction = 9.8;
         this._playerSpeed = 750;
-        this._playerMass = 100;
+        this._playerMass = 16;
+        this._playerHeight = 8;
+        this._raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, this._playerHeight);
+        this._collisionObjects = [];
 
         // sprites
         const sprite = new Sprite('https://i.imgur.com/NPO6nJU.png');
@@ -168,11 +171,14 @@ export default class Scene extends Component {
                     const mapIndex = level.getWallTileByXY(x, z, y);
 
                     if (mapIndex === 0) continue;
+
                     const box = new Box();
                     box.mesh.position.x = TILE_SIZE * x;
                     box.mesh.position.z = TILE_SIZE * z;
                     box.mesh.position.y = (TILE_SIZE * y) + (TILE_SIZE / 2);
+
                     this._scene.add(box.mesh);
+                    this._collisionObjects.push(box.mesh);
                 }
             }
         }
@@ -214,9 +220,11 @@ export default class Scene extends Component {
     }
 
     _moveControlsObject(seconds) {
+        if (!this._controls) return;
+
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
-        // this._playerVelocity.y -= 9.8 * this._playerMass * seconds;
+        this._playerVelocity.y -= 9.8 * this._playerMass * seconds;
 
         this._playerDirection.z = Number(this._controlStates.forward) - Number(this._controlStates.backward);
         this._playerDirection.x = Number(this._controlStates.left) - Number(this._controlStates.right);
@@ -230,10 +238,23 @@ export default class Scene extends Component {
             this._playerVelocity.x -= this._playerDirection.x * this._playerSpeed * seconds;
         }
 
-        if (!this._controls) return;
         this._controls.object.translateX(this._playerVelocity.x * seconds);
         this._controls.object.translateY(this._playerVelocity.y * seconds);
         this._controls.object.translateZ(this._playerVelocity.z * seconds);
+    }
+
+    _checkCollisions() {
+        if (!this._controls) return;
+
+        this._raycaster.ray.origin.copy(this._controls.object.position);
+
+        const intersections = this._raycaster.intersectObjects(this._collisionObjects);
+        const onCollisionObject = intersections.length > 0;
+
+        if (onCollisionObject) {
+            this._playerVelocity.y = 0;
+            this._controls.object.position.y = this._playerHeight;
+        }
     }
 
     _frame(time) {
@@ -247,6 +268,7 @@ export default class Scene extends Component {
     }
 
     _update(secondsElapsed) {
+        this._checkCollisions();
         this._moveControlsObject(secondsElapsed);
         this._renderer.render(this._scene, this._camera);
 
