@@ -24,30 +24,30 @@ level.setWalls([
 level.setWalls([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 0);
 level.setWalls([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 1);
 level.setWalls([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 2);
@@ -117,8 +117,9 @@ export default class Scene extends Component {
         this._playerFriction = 9.8;
         this._playerSpeed = 750;
         this._playerMass = 16;
-        this._playerHeight = 8;
-        this._raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, this._playerHeight);
+        this._playerSize = 8;
+        this._playerCanJump = false;
+        // this._raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, this._playerSize);
         this._collisionObjects = [];
 
         // sprites
@@ -142,12 +143,14 @@ export default class Scene extends Component {
             68: 'right',
             87: 'forward',
             83: 'backward',
+            32: 'jump',
         };
         this._controlStates = {
             'left': false,
             'right': false,
             'forward': false,
             'backward': false,
+            'jump': false,
         };
 
         this._frame = this._frame.bind(this);
@@ -178,7 +181,9 @@ export default class Scene extends Component {
                     box.mesh.position.y = (TILE_SIZE * y) + (TILE_SIZE / 2);
 
                     this._scene.add(box.mesh);
-                    this._collisionObjects.push(box.mesh);
+
+                    const collisionPoints = this._getCollisionPoints(box.mesh);
+                    this._collisionObjects.push(collisionPoints);
                 }
             }
         }
@@ -219,8 +224,27 @@ export default class Scene extends Component {
         this.setState({ isLocked: false });
     }
 
+    _getCollisionPoints(mesh) {
+        const boundingBox = new THREE.Box3().setFromObject(mesh);
+
+        return {
+            type: 'COLLISION',
+            xMin: boundingBox.min.x,
+            xMax: boundingBox.max.x,
+            yMin: boundingBox.min.y,
+            yMax: boundingBox.max.y,
+            zMin: boundingBox.min.z,
+            zMax: boundingBox.max.z,
+        };
+    }
+
     _moveControlsObject(seconds) {
         if (!this._controls) return;
+
+        //this._raycaster.ray.origin.copy(this._controls.object.position);
+
+        //const intersections = this._raycaster.intersectObjects(this._collisionObjects);
+        //const onCollisionObject = intersections.length > 0;
 
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
@@ -238,22 +262,72 @@ export default class Scene extends Component {
             this._playerVelocity.x -= this._playerDirection.x * this._playerSpeed * seconds;
         }
 
+        // if (this._controlStates.jump) {
+        //     if (this._playerCanJump) this._playerVelocity.y += 24;
+        //     this._playerCanJump = false;
+        // }
+
+        // if (onCollisionObject) {
+        //     this._playerVelocity.y = Math.max(0, this._playerVelocity.y);
+        //     this._playerCanJump = true;
+        // }
+
         this._controls.object.translateX(this._playerVelocity.x * seconds);
         this._controls.object.translateY(this._playerVelocity.y * seconds);
         this._controls.object.translateZ(this._playerVelocity.z * seconds);
-    }
 
-    _checkCollisions() {
-        if (!this._controls) return;
+        // if (this._controls.object.position.y < this._playerSize) {
+        //     this._playerVelocity.y = 0;
+        //     this._controls.object.position.y = this._playerSize;
+        //     this._playerCanJump = true;
+        // }
 
-        this._raycaster.ray.origin.copy(this._controls.object.position);
+        if (this._collisionObjects.length > 0) {
+            const playerBounds = {
+                xMin: this._controls.object.position.x - this._playerSize,
+                xMax: this._controls.object.position.x + this._playerSize,
+                yMin: this._controls.object.position.y - this._playerSize,
+                yMax: this._controls.object.position.y + this._playerSize,
+                zMin: this._controls.object.position.z - this._playerSize,
+                zMax: this._controls.object.position.z + this._playerSize,
+            };
 
-        const intersections = this._raycaster.intersectObjects(this._collisionObjects);
-        const onCollisionObject = intersections.length > 0;
+            for (let i = 0; i < this._collisionObjects.length; i++) {
+                const objectBounds = this._collisionObjects[i];
+                if (objectBounds.type !== 'COLLISION') return;
+                if (
+                    (playerBounds.xMin <= objectBounds.xMax && playerBounds.xMax >= objectBounds.xMin) &&
+                    (playerBounds.yMin <= objectBounds.yMax && playerBounds.yMax >= objectBounds.yMin) &&
+                    (playerBounds.zMin <= objectBounds.zMax && playerBounds.zMax >= objectBounds.zMin)
+                ) {
+                    // if (playerBounds.xMin < objectBounds.xMax) {
+                    //     this._playerVelocity.x = 0;
+                    //     this._controls.object.position.x = objectBounds.xMax + this._playerSize;
+                    // }
+                    // else if (playerBounds.xMax > objectBounds.xMin) {
+                    //     this._playerVelocity.x = 0;
+                    //     this._controls.object.position.x = objectBounds.xMin - this._playerSize;
+                    // }
 
-        if (onCollisionObject) {
-            this._playerVelocity.y = 0;
-            this._controls.object.position.y = this._playerHeight;
+                    if (playerBounds.yMin < objectBounds.yMax) {
+                        this._playerVelocity.y = 0;
+                        this._controls.object.position.y = objectBounds.yMax + this._playerSize;
+                    }
+                    else if (playerBounds.yMax > objectBounds.yMin) {
+                        this._playerVelocity.y = 0;
+                        this._controls.object.position.y = objectBounds.yMin - this._playerSize;
+                    }
+
+                    // if (playerBounds.zMin < objectBounds.zMax) {
+                    //     this._playerVelocity.z = 0;
+                    //     this._controls.object.position.z = objectBounds.zMax + this._playerSize;
+                    // }
+                    // else if (playerBounds.zMax > objectBounds.zMin) {
+                    //     this._playerVelocity.z = 0;
+                    //     this._controls.object.position.z = objectBounds.zMin - this._playerSize;
+                    // }
+                }
+            }
         }
     }
 
@@ -268,7 +342,6 @@ export default class Scene extends Component {
     }
 
     _update(secondsElapsed) {
-        this._checkCollisions();
         this._moveControlsObject(secondsElapsed);
         this._renderer.render(this._scene, this._camera);
 

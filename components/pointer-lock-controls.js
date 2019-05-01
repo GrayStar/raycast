@@ -13,7 +13,7 @@ export default class PointerLockControls extends Component {
 		this._pitchObject.add(this.props.camera);
 
 		this._yawObject = new THREE.Object3D();
-		this._yawObject.position.y = 256; // temp (height of player)
+		this._yawObject.position.y = 128; // temp (height of player)
 		this._yawObject.position.z = 0; // temp
 		this._yawObject.position.x = 0; // temp
 		this._yawObject.add(this._pitchObject);
