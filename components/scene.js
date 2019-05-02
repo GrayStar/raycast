@@ -241,11 +241,6 @@ export default class Scene extends Component {
     _moveControlsObject(seconds) {
         if (!this._controls) return;
 
-        //this._raycaster.ray.origin.copy(this._controls.object.position);
-
-        //const intersections = this._raycaster.intersectObjects(this._collisionObjects);
-        //const onCollisionObject = intersections.length > 0;
-
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
         this._playerVelocity.y -= 9.8 * this._playerMass * seconds;
@@ -262,25 +257,14 @@ export default class Scene extends Component {
             this._playerVelocity.x -= this._playerDirection.x * this._playerSpeed * seconds;
         }
 
-        // if (this._controlStates.jump) {
-        //     if (this._playerCanJump) this._playerVelocity.y += 24;
-        //     this._playerCanJump = false;
-        // }
-
-        // if (onCollisionObject) {
-        //     this._playerVelocity.y = Math.max(0, this._playerVelocity.y);
-        //     this._playerCanJump = true;
-        // }
+        if (this._controlStates.jump) {
+            if (this._playerCanJump) this._playerVelocity.y += 56;
+            this._playerCanJump = false;
+        }
 
         this._controls.object.translateX(this._playerVelocity.x * seconds);
         this._controls.object.translateY(this._playerVelocity.y * seconds);
         this._controls.object.translateZ(this._playerVelocity.z * seconds);
-
-        // if (this._controls.object.position.y < this._playerSize) {
-        //     this._playerVelocity.y = 0;
-        //     this._controls.object.position.y = this._playerSize;
-        //     this._playerCanJump = true;
-        // }
 
         if (this._collisionObjects.length > 0) {
             const playerBounds = {
@@ -295,12 +279,28 @@ export default class Scene extends Component {
             for (let i = 0; i < this._collisionObjects.length; i++) {
                 const objectBounds = this._collisionObjects[i];
                 if (objectBounds.type !== 'COLLISION') return;
+
                 if (
-                    (playerBounds.xMin <= objectBounds.xMax && playerBounds.xMax >= objectBounds.xMin) &&
-                    (playerBounds.yMin <= objectBounds.yMax && playerBounds.yMax >= objectBounds.yMin) &&
-                    (playerBounds.zMin <= objectBounds.zMax && playerBounds.zMax >= objectBounds.zMin)
+                    (playerBounds.xMin < objectBounds.xMax && playerBounds.xMax > objectBounds.xMin) &&
+                    (playerBounds.yMin < objectBounds.yMax && playerBounds.yMax > objectBounds.yMin) &&
+                    (playerBounds.zMin < objectBounds.zMax && playerBounds.zMax > objectBounds.zMin)
                 ) {
-                    // if (playerBounds.xMin < objectBounds.xMax) {
+                    // Collide with floor
+                    if (playerBounds.yMin < objectBounds.yMax) {
+                        this._playerVelocity.y = 0;
+                        this._controls.object.position.y = objectBounds.yMax + this._playerSize;
+                        this._playerCanJump = true;
+                    }
+                    // Collide with roof
+                    else if (playerBounds.yMax > objectBounds.yMin) {
+                        this._playerVelocity.y = 0;
+                        this._controls.object.position.y = objectBounds.yMin - this._playerSize;
+                    }
+
+                    playerBounds.yMin = this._controls.object.position.y - this._playerSize;
+                    playerBounds.yMax = this._controls.object.position.y + this._playerSize;
+
+                    // if (playerBounds.xMin < objectBounds.xMax && this._playerVelocity.x !== 0) {
                     //     this._playerVelocity.x = 0;
                     //     this._controls.object.position.x = objectBounds.xMax + this._playerSize;
                     // }
@@ -308,15 +308,6 @@ export default class Scene extends Component {
                     //     this._playerVelocity.x = 0;
                     //     this._controls.object.position.x = objectBounds.xMin - this._playerSize;
                     // }
-
-                    if (playerBounds.yMin < objectBounds.yMax) {
-                        this._playerVelocity.y = 0;
-                        this._controls.object.position.y = objectBounds.yMax + this._playerSize;
-                    }
-                    else if (playerBounds.yMax > objectBounds.yMin) {
-                        this._playerVelocity.y = 0;
-                        this._controls.object.position.y = objectBounds.yMin - this._playerSize;
-                    }
 
                     // if (playerBounds.zMin < objectBounds.zMax) {
                     //     this._playerVelocity.z = 0;
