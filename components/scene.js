@@ -119,6 +119,13 @@ export default class Scene extends Component {
         this._playerMass = 16;
         this._playerSize = 8;
         this._playerCanJump = false;
+
+        this._playerBox = new Box();
+        this._playerBox.mesh.position.x = 0;
+        this._playerBox.mesh.position.z = 0;
+        this._playerBox.mesh.position.y = 9;
+        this._scene.add(this._playerBox.mesh);
+
         // this._raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, this._playerSize);
         this._collisionObjects = [];
 
@@ -181,9 +188,7 @@ export default class Scene extends Component {
                     box.mesh.position.y = (TILE_SIZE * y) + (TILE_SIZE / 2);
 
                     this._scene.add(box.mesh);
-
-                    const collisionPoints = this._getCollisionPoints(box.mesh);
-                    this._collisionObjects.push(collisionPoints);
+                    this._collisionObjects.push(box.mesh);
                 }
             }
         }
@@ -224,26 +229,12 @@ export default class Scene extends Component {
         this.setState({ isLocked: false });
     }
 
-    _getCollisionPoints(mesh) {
-        const boundingBox = new THREE.Box3().setFromObject(mesh);
-
-        return {
-            type: 'COLLISION',
-            xMin: boundingBox.min.x,
-            xMax: boundingBox.max.x,
-            yMin: boundingBox.min.y,
-            yMax: boundingBox.max.y,
-            zMin: boundingBox.min.z,
-            zMax: boundingBox.max.z,
-        };
-    }
-
     _moveControlsObject(seconds) {
         if (!this._controls) return;
 
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
-        this._playerVelocity.y -= 9.8 * this._playerMass * seconds;
+        // this._playerVelocity.y -= 9.8 * this._playerMass * seconds;
 
         this._playerDirection.z = Number(this._controlStates.forward) - Number(this._controlStates.backward);
         this._playerDirection.x = Number(this._controlStates.left) - Number(this._controlStates.right);
@@ -257,68 +248,35 @@ export default class Scene extends Component {
             this._playerVelocity.x -= this._playerDirection.x * this._playerSpeed * seconds;
         }
 
-        if (this._controlStates.jump) {
-            if (this._playerCanJump) this._playerVelocity.y += 56;
-            this._playerCanJump = false;
-        }
+        // if (this._controlStates.jump) {
+        //     if (this._playerCanJump) this._playerVelocity.y += 56;
+        //     this._playerCanJump = false;
+        // }
 
         this._controls.object.translateX(this._playerVelocity.x * seconds);
         this._controls.object.translateY(this._playerVelocity.y * seconds);
         this._controls.object.translateZ(this._playerVelocity.z * seconds);
 
-        if (this._collisionObjects.length > 0) {
-            const playerBounds = {
-                xMin: this._controls.object.position.x - this._playerSize,
-                xMax: this._controls.object.position.x + this._playerSize,
-                yMin: this._controls.object.position.y - this._playerSize,
-                yMax: this._controls.object.position.y + this._playerSize,
-                zMin: this._controls.object.position.z - this._playerSize,
-                zMax: this._controls.object.position.z + this._playerSize,
-            };
+        this._playerBox.mesh.translateX(this._playerVelocity.x * seconds);
+        this._playerBox.mesh.translateY(this._playerVelocity.y * seconds);
+        this._playerBox.mesh.translateZ(this._playerVelocity.z * seconds);
 
-            for (let i = 0; i < this._collisionObjects.length; i++) {
-                const objectBounds = this._collisionObjects[i];
-                if (objectBounds.type !== 'COLLISION') return;
+        if (this._checkCollisions(this._playerBox.mesh)) {
+            console.log('hit');
+        }
+    }
 
-                if (
-                    (playerBounds.xMin < objectBounds.xMax && playerBounds.xMax > objectBounds.xMin) &&
-                    (playerBounds.yMin < objectBounds.yMax && playerBounds.yMax > objectBounds.yMin) &&
-                    (playerBounds.zMin < objectBounds.zMax && playerBounds.zMax > objectBounds.zMin)
-                ) {
-                    // Collide with floor
-                    if (playerBounds.yMin < objectBounds.yMax) {
-                        this._playerVelocity.y = 0;
-                        this._controls.object.position.y = objectBounds.yMax + this._playerSize;
-                        this._playerCanJump = true;
-                    }
-                    // Collide with roof
-                    else if (playerBounds.yMax > objectBounds.yMin) {
-                        this._playerVelocity.y = 0;
-                        this._controls.object.position.y = objectBounds.yMin - this._playerSize;
-                    }
+    _checkCollisions(mesh) {
+        const originPoint = mesh.position.clone();
 
-                    playerBounds.yMin = this._controls.object.position.y - this._playerSize;
-                    playerBounds.yMax = this._controls.object.position.y + this._playerSize;
+        for (let vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++) {
+            const localVertex = mesh.geometry.vertices[vertexIndex].clone();
+            const globalVertex = localVertex.applyMatrix4(mesh.matrix);
+            const directionVector = globalVertex.sub(mesh.position);
 
-                    // if (playerBounds.xMin < objectBounds.xMax && this._playerVelocity.x !== 0) {
-                    //     this._playerVelocity.x = 0;
-                    //     this._controls.object.position.x = objectBounds.xMax + this._playerSize;
-                    // }
-                    // else if (playerBounds.xMax > objectBounds.xMin) {
-                    //     this._playerVelocity.x = 0;
-                    //     this._controls.object.position.x = objectBounds.xMin - this._playerSize;
-                    // }
-
-                    // if (playerBounds.zMin < objectBounds.zMax) {
-                    //     this._playerVelocity.z = 0;
-                    //     this._controls.object.position.z = objectBounds.zMax + this._playerSize;
-                    // }
-                    // else if (playerBounds.zMax > objectBounds.zMin) {
-                    //     this._playerVelocity.z = 0;
-                    //     this._controls.object.position.z = objectBounds.zMin - this._playerSize;
-                    // }
-                }
-            }
+            const ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
+            const collisionResults = ray.intersectObjects(this._collisionObjects);
+            if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) return true;
         }
     }
 
