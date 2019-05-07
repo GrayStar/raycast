@@ -25,6 +25,7 @@ export default class PointerLockControls extends Component {
 
 	componentDidMount() {
 		this.props.camera.rotation.set(0, 0, 0);
+		this._yawObject.rotation.y = -PI_2;
 
 		document.addEventListener('mousemove', this._handleMouseMove, false);
 		document.addEventListener('pointerlockchange', this._handlePointerLockChange, false);

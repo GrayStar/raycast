@@ -167,7 +167,7 @@ export default class Scene extends Component {
         // Add controls
         this._scene.add(this._controls.object);
 
-        // add map (-1 for floow layer)
+        // add map (-1 for floor layer)
         for (let y = -1; y < MAP_ELEVATIONS; y++) {
             for (let z = 0; z < MAP_HEIGHT; z++) {
                 for(let x = 0; x < MAP_WIDTH; x++) {
@@ -231,7 +231,7 @@ export default class Scene extends Component {
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
 
         // Figure out direction of camera
-        // (cameras look down their own negative axis, thus we need the '-')
+        // (cameras look down their own negative axis, thus we need the '-' to invert it)
         const directionVector = new THREE.Vector3();
         const directionX = -this._controls.object.getWorldDirection(directionVector).x;
         const directionZ = -this._controls.object.getWorldDirection(directionVector).z;
@@ -343,6 +343,7 @@ export default class Scene extends Component {
         this._moveControlsObject(secondsElapsed);
         this._renderer.render(this._scene, this._camera);
 
+        // Have all sprites look at the camera
         this._sprites.forEach(sprite => {
             // the _controls object should always exist, probably should refactor this out
             if (this._controls) sprite.render(this._controls.object);
