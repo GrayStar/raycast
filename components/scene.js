@@ -113,7 +113,6 @@ export default class Scene extends Component {
 
         // player
         this._playerVelocity = new THREE.Vector3();
-        this._playerDirection = new THREE.Vector3();
         this._playerFriction = 9.8;
         this._playerSpeed = 600;
         this._playerMass = 16;
@@ -226,25 +225,37 @@ export default class Scene extends Component {
     _moveControlsObject(seconds) {
         if (!this._controls) return;
 
+        // Always apply friction and gravity
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
         this._playerVelocity.y -= 9.8 * this._playerMass * seconds; // 9.8 is g-force;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
 
-        this._playerDirection.x = Number(this._controlStates.left) - Number(this._controlStates.right);
-        this._playerDirection.z = Number(this._controlStates.forward) - Number(this._controlStates.backward);
-        this._playerDirection.normalize();
+        // Figure out direction of camera
+        // (cameras look down their own negative axis, thus we need the '-')
+        const directionVector = new THREE.Vector3();
+        const directionX = -this._controls.object.getWorldDirection(directionVector).x;
+        const directionZ = -this._controls.object.getWorldDirection(directionVector).z;
+        const planeX = directionZ;
+        const planeZ = -directionX;
 
-        if (this._controlStates.left || this._controlStates.right) {
-            this._playerVelocity.x -= this._playerDirection.x * (this._playerSpeed * seconds);
+        // Handle controlStates
+        if (this._controlStates.forward) {
+            this._playerVelocity.x += directionX * (this._playerSpeed * seconds);
+            this._playerVelocity.z += directionZ * (this._playerSpeed * seconds);
         }
-
-        if (this._controlStates.jump) {
-            if (this._playerCanJump) this._playerVelocity.y += 80;
+        if (this._controlStates.backward) {
+            this._playerVelocity.x -= directionX * (this._playerSpeed * seconds);
+            this._playerVelocity.z -= directionZ * (this._playerSpeed * seconds);
         }
-
-        if (this._controlStates.forward || this._controlStates.backward) {
-            this._playerVelocity.z -= this._playerDirection.z * (this._playerSpeed * seconds);
+        if (this._controlStates.left) {
+            this._playerVelocity.x += planeX * (this._playerSpeed * seconds);
+            this._playerVelocity.z += planeZ * (this._playerSpeed * seconds);
         }
+        if (this._controlStates.right) {
+            this._playerVelocity.x -= planeX * (this._playerSpeed * seconds);
+            this._playerVelocity.z -= planeZ * (this._playerSpeed * seconds);
+        }
+        if (this._controlStates.jump && this._playerCanJump) this._playerVelocity.y += 80;
 
         // Predict next position
         let nextX = this._controls.object.position.x + (this._playerVelocity.x * seconds);
@@ -333,7 +344,7 @@ export default class Scene extends Component {
         this._renderer.render(this._scene, this._camera);
 
         this._sprites.forEach(sprite => {
-            // the _controls object should always exist, probably shout refactor this out
+            // the _controls object should always exist, probably should refactor this out
             if (this._controls) sprite.render(this._controls.object);
         });
     }
