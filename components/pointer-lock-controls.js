@@ -13,7 +13,7 @@ export default class PointerLockControls extends Component {
 		this._pitchObject.add(this.props.camera);
 
 		this._yawObject = new THREE.Object3D();
-		this._yawObject.position.y = 128; // temp (height of player)
+		this._yawObject.position.y = 88; // temp (height of player)
 		this._yawObject.position.z = 0; // temp
 		this._yawObject.position.x = 0; // temp
 		this._yawObject.add(this._pitchObject);
@@ -25,7 +25,6 @@ export default class PointerLockControls extends Component {
 
 	componentDidMount() {
 		this.props.camera.rotation.set(0, 0, 0);
-		this._yawObject.rotation.y = -PI_2;
 
 		document.addEventListener('mousemove', this._handleMouseMove, false);
 		document.addEventListener('pointerlockchange', this._handlePointerLockChange, false);
@@ -77,7 +76,7 @@ export default class PointerLockControls extends Component {
 		return this._yawObject;
 	}
 
-	getDirection() {
+	get direction() {
 		const direction = new THREE.Vector3(0, 0, -1);
 		const rotation = new THREE.Euler(0, 0, 0, 'YXZ');
 
