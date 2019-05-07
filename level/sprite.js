@@ -12,6 +12,7 @@ export default class Sprite {
         this._spriteMaterial = new THREE.MeshLambertMaterial({
             side: THREE.DoubleSide,
             map: this._spriteTexture,
+            transparent: true,
             alphaTest: 0.5,
         });
 

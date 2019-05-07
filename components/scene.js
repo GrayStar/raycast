@@ -131,7 +131,7 @@ export default class Scene extends Component {
         sprite.mesh.position.y = TILE_SIZE / 2;
         sprite.mesh.position.z = TILE_SIZE * 1;
 
-        const sprite2 = new Sprite('/static/images/sprites/yellow-guy/yellow-guy-front.png');
+        const sprite2 = new Sprite('/static/images/sprites/health-potion/health-potion.png');
         sprite2.mesh.position.x = TILE_SIZE * 4;
         sprite2.mesh.position.y = TILE_SIZE / 2;
         sprite2.mesh.position.z = TILE_SIZE * 6;
