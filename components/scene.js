@@ -24,33 +24,13 @@ level.setWalls([
 level.setWalls([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 0);
-level.setWalls([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-], 1);
-level.setWalls([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-], 2);
 
 const MAP_ELEVATIONS = level.walls.length;
 const MAP_WIDTH = level.width;
@@ -115,7 +95,7 @@ export default class Scene extends Component {
         this._playerVelocity = new THREE.Vector3();
         this._playerDirection = new THREE.Vector3();
         this._playerFriction = 9.8;
-        this._playerSpeed = 750;
+        this._playerSpeed = 800;
         this._playerMass = 16;
         this._playerSize = 8;
         this._playerCanJump = false;
@@ -123,7 +103,7 @@ export default class Scene extends Component {
         this._playerBox = new Box();
         this._playerBox.mesh.position.x = 0;
         this._playerBox.mesh.position.z = 0;
-        this._playerBox.mesh.position.y = 9;
+        this._playerBox.mesh.position.y = 8;
         this._scene.add(this._playerBox.mesh);
 
         // this._raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, this._playerSize);
@@ -233,50 +213,97 @@ export default class Scene extends Component {
         if (!this._controls) return;
 
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
+        this._playerVelocity.y -= 9.8 * this._playerMass * seconds; // 9.8 is g-force;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
-        // this._playerVelocity.y -= 9.8 * this._playerMass * seconds;
 
-        this._playerDirection.z = Number(this._controlStates.forward) - Number(this._controlStates.backward);
         this._playerDirection.x = Number(this._controlStates.left) - Number(this._controlStates.right);
+        this._playerDirection.z = Number(this._controlStates.forward) - Number(this._controlStates.backward);
         this._playerDirection.normalize();
-
-        if (this._controlStates.forward || this._controlStates.backward) {
-            this._playerVelocity.z -= this._playerDirection.z * this._playerSpeed * seconds;
-        }
 
         if (this._controlStates.left || this._controlStates.right) {
             this._playerVelocity.x -= this._playerDirection.x * this._playerSpeed * seconds;
         }
 
-        // if (this._controlStates.jump) {
-        //     if (this._playerCanJump) this._playerVelocity.y += 56;
-        //     this._playerCanJump = false;
-        // }
-
-        this._controls.object.translateX(this._playerVelocity.x * seconds);
-        this._controls.object.translateY(this._playerVelocity.y * seconds);
-        this._controls.object.translateZ(this._playerVelocity.z * seconds);
-
-        this._playerBox.mesh.translateX(this._playerVelocity.x * seconds);
-        this._playerBox.mesh.translateY(this._playerVelocity.y * seconds);
-        this._playerBox.mesh.translateZ(this._playerVelocity.z * seconds);
-
-        if (this._checkCollisions(this._playerBox.mesh)) {
-            console.log('hit');
+        if (this._controlStates.jump) {
+            if (this._playerCanJump) this._playerVelocity.y += 80;
+            this._playerCanJump = false;
         }
+
+        if (this._controlStates.forward || this._controlStates.backward) {
+            this._playerVelocity.z -= this._playerDirection.z * this._playerSpeed * seconds;
+        }
+
+        // Predict next position
+        let nextX = this._playerBox.mesh.position.x + (this._playerVelocity.x * seconds);
+        let nextY = this._playerBox.mesh.position.y + (this._playerVelocity.y * seconds);
+        let nextZ = this._playerBox.mesh.position.z + (this._playerVelocity.z * seconds);
+
+        // Check east/west collisions
+        if (this._playerVelocity.x !== 0) {
+            const nextPosition = new THREE.Vector3(nextX, this._playerBox.mesh.position.y, this._playerBox.mesh.position.z);
+            const collision = this._checkCollision(nextPosition);
+
+            if (collision) {
+                if (this._playerVelocity.x > 0) {
+                    nextX = collision.min.x - this._playerSize;
+                } else if (this._playerVelocity.x < 0) {
+                    nextX = collision.max.x + this._playerSize;
+                }
+            }
+        }
+
+        // Check up/down collisions
+        if (this._playerVelocity.y !== 0) {
+            const nextPosition = new THREE.Vector3(this._playerBox.mesh.position.x, nextY, this._playerBox.mesh.position.z);
+            const collision = this._checkCollision(nextPosition);
+
+            if (collision) {
+                if (this._playerVelocity.y < 0) {
+                    this._playerVelocity.y = 0;
+                    nextY = collision.max.y + this._playerSize;
+                    this._playerCanJump = true;
+                } else if (this._playerVelocity.y > 0) {
+                    this._playerVelocity.y = 0;
+                    nextY = collision.min.y - this._playerSize;
+                }
+            }
+        }
+
+        // Check north/south collisions
+        if (this._playerVelocity.z !== 0) {
+            const nextPosition = new THREE.Vector3(this._playerBox.mesh.position.x, this._playerBox.mesh.position.y, nextZ);
+            const collision = this._checkCollision(nextPosition);
+
+            if (collision) {
+                if (this._playerVelocity.z > 0) {
+                    nextZ = collision.min.z - this._playerSize;
+                } if (this._playerVelocity.z < 0) {
+                    nextZ = collision.max.z + this._playerSize;
+                }
+            }
+        }
+
+        // Update player position
+        this._playerBox.mesh.position.x = nextX;
+        this._playerBox.mesh.position.y = nextY;
+        this._playerBox.mesh.position.z = nextZ;
+
+        // Make camera follow the player box for now
+        this._controls.object.position.x = this._playerBox.mesh.position.x;
+        this._controls.object.position.z = this._playerBox.mesh.position.z;
     }
 
-    _checkCollisions(mesh) {
-        const originPoint = mesh.position.clone();
+    _checkCollision(vector3) {
+        for(let i = 0; i < this._collisionObjects.length; i++) {
+            const collisionObject = this._collisionObjects[i];
+            const objectPosition = collisionObject.position;
+            const objectBoundingBox = new THREE.Box3().setFromObject(collisionObject);
 
-        for (let vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++) {
-            const localVertex = mesh.geometry.vertices[vertexIndex].clone();
-            const globalVertex = localVertex.applyMatrix4(mesh.matrix);
-            const directionVector = globalVertex.sub(mesh.position);
-
-            const ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
-            const collisionResults = ray.intersectObjects(this._collisionObjects);
-            if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) return true;
+            if ((vector3.x + this._playerSize > objectBoundingBox.min.x && vector3.x - this._playerSize < objectBoundingBox.max.x) &&
+                (vector3.y + this._playerSize > objectBoundingBox.min.y && vector3.y - this._playerSize < objectBoundingBox.max.y) &&
+                (vector3.z + this._playerSize > objectBoundingBox.min.z && vector3.z - this._playerSize < objectBoundingBox.max.z)) {
+                return objectBoundingBox;
+            }
         }
     }
 
