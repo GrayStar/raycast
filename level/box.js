@@ -3,8 +3,8 @@ import * as THREE from 'three';
 export default class Box {
     constructor() {
     	// Load textures
-        this._topTexture = new THREE.TextureLoader().load('https://i.imgur.com/yeTdmkj.png');
-        this._sideTexture = new THREE.TextureLoader().load('https://i.imgur.com/1jkxxi1.png');
+        this._topTexture = new THREE.TextureLoader().load('/static/images/boxes/stone/box-stone-top.png');
+        this._sideTexture = new THREE.TextureLoader().load('/static/images/boxes/stone/box-stone-side.png');
 
         // Set texture filter mode
         this._topTexture.magFilter = THREE.NearestFilter;

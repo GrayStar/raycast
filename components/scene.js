@@ -115,21 +115,23 @@ export default class Scene extends Component {
         this._playerVelocity = new THREE.Vector3();
         this._playerDirection = new THREE.Vector3();
         this._playerFriction = 9.8;
+        this._playerGravity = 9.8;
         this._playerSpeed = 600;
         this._playerMass = 16;
         this._playerWidth = 4;
         this._playerHeight = 8;
         this._playerCanJump = false;
+        this._playerJumpStrength = 80;
 
         this._collisionObjects = [];
 
         // sprites
-        const sprite = new Sprite('https://i.imgur.com/NPO6nJU.png');
+        const sprite = new Sprite('/static/images/sprites/yellow-guy/yellow-guy-front.png');
         sprite.mesh.position.x = TILE_SIZE * 4;
         sprite.mesh.position.y = TILE_SIZE / 2;
         sprite.mesh.position.z = TILE_SIZE * 1;
 
-        const sprite2 = new Sprite('https://i.imgur.com/NPO6nJU.png');
+        const sprite2 = new Sprite('/static/images/sprites/yellow-guy/yellow-guy-front.png');
         sprite2.mesh.position.x = TILE_SIZE * 4;
         sprite2.mesh.position.y = TILE_SIZE / 2;
         sprite2.mesh.position.z = TILE_SIZE * 6;
@@ -229,8 +231,13 @@ export default class Scene extends Component {
 
         // Always apply friction and gravity
         this._playerVelocity.x -= this._playerVelocity.x * this._playerFriction * seconds;
-        this._playerVelocity.y -= 9.8 * this._playerMass * seconds; // 9.8 is g-force;
+        this._playerVelocity.y -= this._playerGravity * this._playerMass * seconds;
         this._playerVelocity.z -= this._playerVelocity.z * this._playerFriction * seconds;
+
+        // Remove player x/z velocity when number gets small enough
+        // (friction will never fully remove it)
+        if (this._playerVelocity.x < 1 && this._playerVelocity.x > -1) this._playerVelocity.x = 0;
+        if (this._playerVelocity.z < 1 && this._playerVelocity.z > -1) this._playerVelocity.z = 0;
 
         // Figure out direction of camera
         // (cameras look down their own negative axis, thus we need the '-' to invert it)
@@ -257,12 +264,7 @@ export default class Scene extends Component {
             this._playerVelocity.x -= planeX * (this._playerSpeed * seconds);
             this._playerVelocity.z -= planeZ * (this._playerSpeed * seconds);
         }
-        if (this._controlStates.jump && this._playerCanJump) this._playerVelocity.y += 80;
-
-        // Remove player  x/z velocity when number gets small enough
-        // (friction will never fully remove it)
-        if (this._playerVelocity.x < 1 && this._playerVelocity.x > -1) this._playerVelocity.x = 0;
-        if (this._playerVelocity.z < 1 && this._playerVelocity.z > -1) this._playerVelocity.z = 0;
+        if (this._controlStates.jump && this._playerCanJump) this._playerVelocity.y += this._playerJumpStrength;
 
         // Save off current position
         const currentX = this._controls.object.position.x;
