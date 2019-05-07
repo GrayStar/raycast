@@ -24,30 +24,30 @@ level.setWalls([
 level.setWalls([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 0);
 level.setWalls([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 1);
 level.setWalls([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 2);
@@ -113,6 +113,7 @@ export default class Scene extends Component {
 
         // player
         this._playerVelocity = new THREE.Vector3();
+        this._playerDirection = new THREE.Vector3();
         this._playerFriction = 9.8;
         this._playerSpeed = 600;
         this._playerMass = 16;
@@ -167,7 +168,7 @@ export default class Scene extends Component {
         // Add controls
         this._scene.add(this._controls.object);
 
-        // add map (-1 for floor layer)
+        // add map (start at -1 for floor layer)
         for (let y = -1; y < MAP_ELEVATIONS; y++) {
             for (let z = 0; z < MAP_HEIGHT; z++) {
                 for(let x = 0; x < MAP_WIDTH; x++) {
@@ -179,6 +180,7 @@ export default class Scene extends Component {
                     box.mesh.position.x = TILE_SIZE * x;
                     box.mesh.position.z = TILE_SIZE * z;
                     box.mesh.position.y = (TILE_SIZE * y) + (TILE_SIZE / 2);
+                    box.mesh.geometry.boundingBox = new THREE.Box3().setFromObject(box.mesh);
 
                     this._scene.add(box.mesh);
                     this._collisionObjects.push(box.mesh);
@@ -232,9 +234,9 @@ export default class Scene extends Component {
 
         // Figure out direction of camera
         // (cameras look down their own negative axis, thus we need the '-' to invert it)
-        const directionVector = new THREE.Vector3();
-        const directionX = -this._controls.object.getWorldDirection(directionVector).x;
-        const directionZ = -this._controls.object.getWorldDirection(directionVector).z;
+        const cameraDirection = this._controls.object.getWorldDirection(this._playerDirection);
+        const directionX = -cameraDirection.x;
+        const directionZ = -cameraDirection.z;
         const planeX = directionZ;
         const planeZ = -directionX;
 
@@ -257,15 +259,25 @@ export default class Scene extends Component {
         }
         if (this._controlStates.jump && this._playerCanJump) this._playerVelocity.y += 80;
 
+        // Remove player  x/z velocity when number gets small enough
+        // (friction will never fully remove it)
+        if (this._playerVelocity.x < 1 && this._playerVelocity.x > -1) this._playerVelocity.x = 0;
+        if (this._playerVelocity.z < 1 && this._playerVelocity.z > -1) this._playerVelocity.z = 0;
+
+        // Save off current position
+        const currentX = this._controls.object.position.x;
+        const currentY = this._controls.object.position.y;
+        const currentZ = this._controls.object.position.z;
+
         // Predict next position
         let nextX = this._controls.object.position.x + (this._playerVelocity.x * seconds);
         let nextY = this._controls.object.position.y + (this._playerVelocity.y * seconds);
         let nextZ = this._controls.object.position.z + (this._playerVelocity.z * seconds);
 
-        // Check east/west collisions
+        // Check x collisions (east/west)
         if (this._playerVelocity.x !== 0) {
-            const nextPosition = new THREE.Vector3(nextX, this._controls.object.position.y, this._controls.object.position.z);
-            const collision = this._checkCollision(nextPosition);
+            const nextXPosition = new THREE.Vector3(nextX, currentY, currentZ);
+            const collision = this._checkCollision(nextXPosition);
 
             if (collision) {
                 if (this._playerVelocity.x > 0) {
@@ -276,10 +288,10 @@ export default class Scene extends Component {
             }
         }
 
-        // Check up/down collisions
+        // Check y collisions (up/down)
         if (this._playerVelocity.y !== 0) {
-            const nextPosition = new THREE.Vector3(this._controls.object.position.x, nextY, this._controls.object.position.z);
-            const collision = this._checkCollision(nextPosition);
+            const nextYPosition = new THREE.Vector3(currentX, nextY, currentZ);
+            const collision = this._checkCollision(nextYPosition);
 
             this._playerCanJump = false;
 
@@ -295,10 +307,10 @@ export default class Scene extends Component {
             }
         }
 
-        // Check north/south collisions
+        // Check z collisions (north/south)
         if (this._playerVelocity.z !== 0) {
-            const nextPosition = new THREE.Vector3(this._controls.object.position.x, this._controls.object.position.y, nextZ);
-            const collision = this._checkCollision(nextPosition);
+            const nextZPosition = new THREE.Vector3(currentX, currentY, nextZ);
+            const collision = this._checkCollision(nextZPosition);
 
             if (collision) {
                 if (this._playerVelocity.z > 0) {
@@ -319,7 +331,7 @@ export default class Scene extends Component {
         for(let i = 0; i < this._collisionObjects.length; i++) {
             const collisionObject = this._collisionObjects[i];
             const objectPosition = collisionObject.position;
-            const objectBoundingBox = new THREE.Box3().setFromObject(collisionObject);
+            const objectBoundingBox = collisionObject.geometry.boundingBox;
 
             if ((positionVector3.x + this._playerWidth > objectBoundingBox.min.x && positionVector3.x - this._playerWidth < objectBoundingBox.max.x) &&
                 (positionVector3.y + this._playerHeight > objectBoundingBox.min.y && positionVector3.y - this._playerHeight < objectBoundingBox.max.y) &&
