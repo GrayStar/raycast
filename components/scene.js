@@ -27,10 +27,30 @@ level.setWalls([
     [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ], 0);
+level.setWalls([
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+], 1);
+level.setWalls([
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+], 2);
 
 const MAP_ELEVATIONS = level.walls.length;
 const MAP_WIDTH = level.width;
@@ -221,7 +241,7 @@ export default class Scene extends Component {
         this._playerDirection.normalize();
 
         if (this._controlStates.left || this._controlStates.right) {
-            this._playerVelocity.x -= this._playerDirection.x * this._playerSpeed * seconds;
+            this._playerVelocity.x -= this._playerDirection.x * (this._playerSpeed * seconds);
         }
 
         if (this._controlStates.jump) {
@@ -230,7 +250,7 @@ export default class Scene extends Component {
         }
 
         if (this._controlStates.forward || this._controlStates.backward) {
-            this._playerVelocity.z -= this._playerDirection.z * this._playerSpeed * seconds;
+            this._playerVelocity.z -= this._playerDirection.z * (this._playerSpeed * seconds);
         }
 
         // Predict next position
@@ -290,6 +310,7 @@ export default class Scene extends Component {
 
         // Make camera follow the player box for now
         this._controls.object.position.x = this._playerBox.mesh.position.x;
+        // this._controls.object.position.y = this._playerBox.mesh.position.y;
         this._controls.object.position.z = this._playerBox.mesh.position.z;
     }
 
